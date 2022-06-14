@@ -15,4 +15,4 @@ add_library(Engine STATIC ${SOURCE_ENGINE})
 
 add_executable(Executable examples/SimpleMap.cpp)
 
-target_link_libraries(Executable Engine -lSDL2 -lSDL2main)
+target_link_libraries(Executable Engine -lSDL2 -lSDL2main -lSDL2_image)
