@@ -23,14 +23,14 @@ constexpr const double  moving_speed    = 3;
 using chrono_clock = std::chrono::time_point<std::chrono::system_clock>;
 
 
-Texture * 
-CreateTexture (
+LicEngine::Texture * 
+CreateLicTexture (
     const char * img_pass
 )
 {
   SDL_PixelFormat   *   format;
   SDL_Surface       *   sdl_surface;
-  Texture           *   new_texture;
+  LicEngine::Texture           *   new_texture;
 
   format      = SDL_AllocFormat( SDL_PIXELFORMAT_RGBA8888 );
   sdl_surface = SDL_ConvertSurface( IMG_Load( img_pass ), format, 0 );
@@ -40,7 +40,7 @@ CreateTexture (
     std::cout << "Can't load " << img_pass << std::endl;
   }
 
-  new_texture = new Texture;
+  new_texture = new LicEngine::Texture;
   new_texture -> width = sdl_surface -> w;
   new_texture -> height = sdl_surface -> h;
   new_texture -> pixels = new Uint32[ sdl_surface -> w * sdl_surface -> h ];
@@ -79,7 +79,7 @@ main (
 
   void *             pixels;
 
-  World              m_world;
+  LicEngine::World   m_world;
 
 
   chrono_clock       clock;
@@ -92,28 +92,30 @@ main (
   LicEngine::Camera  camera;
   
   
-  Hittable hr[7] =
+  LicEngine::Hittable hr[9] =
   {
-    { CreateTexture( "../examples/res/trak_panel_lrg1.jpg" ), 1 },
-    { CreateTexture( "../examples/res/trak_panel_lrg4.jpg" ), 1 },
-    { CreateTexture( "../examples/res/trak_panel_lrg5.jpg" ), 1 },
-    { CreateTexture( "../examples/res/trak_panel_lrg8.jpg" ), 1 },
-    { CreateTexture( "../examples/res/vehl1train2.jpg" ),     1 },
-    { CreateTexture( "../examples/res/trak_tile_y.jpg" ),     0.25 },
-    { CreateTexture( "../examples/res/trak_tile_g.jpg" ),     0 }
+    { CreateLicTexture( "../examples/res/trak_panel_lrg1.jpg" ),            1    },
+    { CreateLicTexture( "../examples/res/trak_panel_lrg4.jpg" ),            1    },
+    { CreateLicTexture( "../examples/res/trak_panel_lrg5.jpg" ),            1    },
+    { CreateLicTexture( "../examples/res/trak_panel_lrg8.jpg" ),            1    },
+    { CreateLicTexture( "../examples/res/vehl1train2.jpg" ),                0.70 },
+    { CreateLicTexture( "../examples/res/trak_tile_y.jpg" ),                0.25 },
+    { CreateLicTexture( "../examples/res/trak_tile_g.jpg" ),                0},
+    { CreateLicTexture( "../examples/res/T_Tile_Sandstone_02_4096_D.png" ), 0.35 },
+    { CreateLicTexture( "../examples/res/T_Tile_Sandstone_02_4096_H.png" ), 0.60 }
   };
   
-  Hittable map[  map_width * map_height ] =
+  LicEngine::Hittable map[  map_width * map_height ] =
   {
     hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],
     hr[0],hr[5],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[0],
     hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[0],
     hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[1],hr[1],hr[1],hr[1],hr[1],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[1],hr[5],hr[5],hr[5],hr[1],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[1],hr[5],hr[5],hr[5],hr[1],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[1],hr[5],hr[5],hr[5],hr[1],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[1],hr[1],hr[5],hr[1],hr[1],hr[6],hr[6],hr[6],hr[0],
+    hr[0],hr[6],hr[5],hr[6],hr[5],hr[6],hr[1],hr[1],hr[1],hr[1],hr[1],hr[6],hr[6],hr[6],hr[0],
+    hr[0],hr[6],hr[5],hr[6],hr[5],hr[6],hr[1],hr[8],hr[4],hr[8],hr[1],hr[6],hr[6],hr[6],hr[0],
+    hr[0],hr[6],hr[5],hr[6],hr[5],hr[6],hr[1],hr[7],hr[7],hr[7],hr[1],hr[6],hr[6],hr[6],hr[0],
+    hr[0],hr[6],hr[5],hr[6],hr[5],hr[6],hr[1],hr[5],hr[5],hr[5],hr[1],hr[6],hr[6],hr[6],hr[0],
+    hr[0],hr[6],hr[5],hr[5],hr[5],hr[6],hr[1],hr[1],hr[5],hr[1],hr[1],hr[6],hr[6],hr[6],hr[0],
     hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[0],
     hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[0],
     hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[0],
@@ -148,7 +150,7 @@ main (
 
   camera.position_x = 3;
   camera.position_y = 3;
-  
+ 
   camera.direction_x = -1;
   camera.direction_y = 0;
   
@@ -191,10 +193,12 @@ main (
     
     camera.Rotate( ( keys[ 2 ] + keys[ 3 ] ) * elapsed * rotating_speed );
     
-    camera.position_x += ( keys[ 0 ] + keys[ 1 ] )
-      * camera.direction_x * elapsed * moving_speed;
-    camera.position_y += ( keys[ 0 ] + keys[ 1 ] ) 
-      * camera.direction_y * elapsed * moving_speed;
+    camera.position_x += (
+      ( keys[ 0 ] + keys[ 1 ] ) * camera.direction_x * elapsed * moving_speed
+    );
+    camera.position_y += (
+      ( keys[ 0 ] + keys[ 1 ] ) * camera.direction_y * elapsed * moving_speed
+    );
         
 
     SDL_LockTexture( sdl_texture, NULL, &pixels, &pixels_pitch );
@@ -207,7 +211,7 @@ main (
     camera.Render(
       reinterpret_cast< Uint32 * >( pixels ), 
       window_width, 
-      window_height - 100, 
+      window_height,// - 100, 
       m_world
     );
    
@@ -231,7 +235,8 @@ main (
 
 
 #ifdef SHOW_FPS
-    if (count == 0) {
+    if ( count == 0 )
+    {
       elapsed_camera = static_cast< std::chrono::duration< double > >(
         std::chrono::high_resolution_clock::now() - camera_clock
       ).count();
@@ -239,7 +244,7 @@ main (
         << static_cast<int>(1 / elapsed_camera) << std::endl << std::endl;
     }
     ++count;
-    if (count >= 100) count = 0;
+    if ( count >= 100 ) count = 0;
 #endif
     
     elapsed = static_cast< std::chrono::duration< double > >(
@@ -250,7 +255,7 @@ main (
   }
 
 
-  for (int i = 0; i < 7; ++i)
+  for ( int i = 0; i < 9; ++i )
   {
     delete [] hr[ i ].m_texture -> pixels;
     delete    hr[ i ].m_texture;

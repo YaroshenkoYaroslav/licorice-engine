@@ -3,23 +3,28 @@
 
 #include <SDL2/SDL_pixels.h>
 
+namespace LicEngine
+{
+
 struct Texture
 {
-  Uint32 *      pixels = nullptr;
-  int           width;
-  int           height;
+  Uint32 *  pixels = nullptr;
+  int       width;
+  int       height;
 };
 
 struct Hittable
 {
-  Texture *     m_texture;
-  double        height;
+  Texture * m_texture;
+  double    height;
 };
 
 struct World
 {
-  Hittable *    map;
-  int           map_width;
+  Hittable *  map;
+  int         map_width;
 };
+
+}
 
 #endif
