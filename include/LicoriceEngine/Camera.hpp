@@ -3,6 +3,7 @@
 
 #include <LicoriceEngine/World.hpp>
 #include <cmath>
+#include <climits>
 #include <iostream>
 
 namespace LicEngine
@@ -33,6 +34,8 @@ class Camera
 
   double  viewing_plane_x;
   double  viewing_plane_y;
+
+  double  max_see_through_height;
 };
 
 }

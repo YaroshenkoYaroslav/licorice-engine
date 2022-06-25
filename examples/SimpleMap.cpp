@@ -13,8 +13,8 @@ constexpr const int     window_width    = 800;
 constexpr const int     window_height   = 600;
 
 
-constexpr const int     map_width       = 15;
-constexpr const int     map_height      = 15;
+constexpr const int     map_width       = 7;
+constexpr const int     map_height      = 12;
 
 constexpr const double  rotating_speed  = 2.5;
 constexpr const double  moving_speed    = 3;
@@ -91,37 +91,29 @@ main (
   SDL_Texture *      sdl_texture;
   LicEngine::Camera  camera;
   
-  
-  LicEngine::Hittable hr[9] =
+  LicEngine::Texture* t[5] =
   {
-    { CreateLicTexture( "../examples/res/trak_panel_lrg1.jpg" ),            1    },
-    { CreateLicTexture( "../examples/res/trak_panel_lrg4.jpg" ),            1    },
-    { CreateLicTexture( "../examples/res/trak_panel_lrg5.jpg" ),            1    },
-    { CreateLicTexture( "../examples/res/trak_panel_lrg8.jpg" ),            1    },
-    { CreateLicTexture( "../examples/res/vehl1train2.jpg" ),                0.70 },
-    { CreateLicTexture( "../examples/res/trak_tile_y.jpg" ),                0.25 },
-    { CreateLicTexture( "../examples/res/trak_tile_g.jpg" ),                0},
-    { CreateLicTexture( "../examples/res/T_Tile_Sandstone_02_4096_D.png" ), 0.35 },
-    { CreateLicTexture( "../examples/res/T_Tile_Sandstone_02_4096_H.png" ), 0.60 }
+    CreateLicTexture("../examples/res/floor.jpg"),
+    CreateLicTexture("../examples/res/floor_special.jpg"),
+    CreateLicTexture("../examples/res/steps.jpg"),
+    CreateLicTexture("../examples/res/wall.jpg"),
+    CreateLicTexture("../examples/res/fire.jpg"),
   };
   
   LicEngine::Hittable map[  map_width * map_height ] =
   {
-    hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],
-    hr[0],hr[5],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[5],hr[6],hr[5],hr[6],hr[1],hr[1],hr[1],hr[1],hr[1],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[5],hr[6],hr[5],hr[6],hr[1],hr[8],hr[4],hr[8],hr[1],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[5],hr[6],hr[5],hr[6],hr[1],hr[7],hr[7],hr[7],hr[1],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[5],hr[6],hr[5],hr[6],hr[1],hr[5],hr[5],hr[5],hr[1],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[5],hr[5],hr[5],hr[6],hr[1],hr[1],hr[5],hr[1],hr[1],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[6],hr[0],
-    hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],hr[0],
+    {t[3], 3}, {t[3], 3.25}, {t[3], 3.5 }, {t[3], 3.75}, {t[3], 4   }, {t[3], 4.5 }, {t[3], 5  },
+    {t[3], 3}, {t[2],    0}, {t[2], 0   }, {t[2], 0.5 }, {t[2], 0.75}, {t[1], 1   }, {t[3], 5.1},
+    {t[3], 3}, {t[0],    0}, {t[0], 0   }, {t[3], 0   }, {t[3], 0   }, {t[1], 1.25}, {t[3], 5.2},
+    {t[3], 3}, {t[0],    0}, {t[0], 0   }, {t[3], 0   }, {t[4], 0   }, {t[1], 1.5 }, {t[3], 5.3},
+    {t[3], 3}, {t[0],    0}, {t[0], 0   }, {t[3], 0   }, {t[4], 0   }, {t[1], 1.75}, {t[3], 6  },
+    {t[3], 3}, {t[0],    0}, {t[0], 0   }, {t[3], 0   }, {t[4], 0   }, {t[1], 2   }, {t[3], 7  },
+    {t[3], 3}, {t[0],    0}, {t[0], 0   }, {t[3], 0   }, {t[4], 0   }, {t[1], 2.5 }, {t[3], 7  },
+    {t[3], 3}, {t[0],    0}, {t[0], 0   }, {t[3], 0   }, {t[4], 0   }, {t[1], 2   }, {t[3], 6  },
+    {t[3], 3}, {t[0],    0}, {t[0], 0   }, {t[3], 0   }, {t[4], 0   }, {t[1], 1.75}, {t[3], 5.3},
+    {t[3], 3}, {t[0],    0}, {t[0], 0   }, {t[3], 0   }, {t[3], 0   }, {t[1], 1.25}, {t[3], 5.2},
+    {t[3], 3}, {t[2],    0}, {t[2], 0.25}, {t[2], 0.5 }, {t[2], 0.75}, {t[1], 1   }, {t[3], 5.1},
+    {t[3], 3}, {t[3], 3.25}, {t[3], 3.5 }, {t[3], 3.75}, {t[3], 4   }, {t[3], 4.5 }, {t[3], 5  },
   };
 
 
@@ -156,6 +148,8 @@ main (
   
   camera.viewing_plane_x  = 0;
   camera.viewing_plane_y  = 0.66;
+  
+  camera.max_see_through_height = 3;
   
   
   clock = std::chrono::system_clock::now();
@@ -255,10 +249,10 @@ main (
   }
 
 
-  for ( int i = 0; i < 9; ++i )
+  for ( int i = 0; i < 5; ++i )
   {
-    delete [] hr[ i ].m_texture -> pixels;
-    delete    hr[ i ].m_texture;
+    delete [] t[ i ] -> pixels;
+    delete    t[ i ];
   }
 
   SDL_DestroyTexture( sdl_texture );
