@@ -15,23 +15,21 @@ Camera::Render (
   int8_t    step_y;
   
   int8_t    side;
-    
-  int16_t   line_mask;
   
-  int32_t   u;
-  int32_t   v;
+  int16_t   u;
+  int16_t   v;
   
-  int32_t   line_y1;
-  int32_t   line_y2;
-  
+  int16_t    line_mask;
+  int16_t    line_y1;
+  int16_t    line_y2;
 
   int32_t   texture_u;
   int32_t   texture_v;
 
-  int32_t   map_x;
-  int32_t   map_y;
-
   Uint32    color;
+
+  int64_t   map_x;
+  int64_t   map_y;
 
   double    basic_wall_line_len;
   double    wall_line_len;
@@ -70,7 +68,7 @@ Camera::Render (
   
   for ( u = 0; u < buff_w; ++u )
     for ( v = 0; v < buff_h; ++v )
-      *( buffer + u + v * buff_w ) = 0xFF000000;
+      *( buffer + u + v * buff_w ) = 0;
 
   for ( u = 0; u < buff_w; ++u )
   {
@@ -79,8 +77,8 @@ Camera::Render (
     ray_dir_x = direction_x + viewing_plane_x * camera_x;
     ray_dir_y = direction_y + viewing_plane_y * camera_x;
 
-    map_x = static_cast< int32_t >( position_x );
-    map_y = static_cast< int32_t >( position_y );
+    map_x = static_cast< int64_t >( position_x );
+    map_y = static_cast< int64_t >( position_y );
 
     delta_dist_x = std::abs( ray_dir_x ? 1 / ray_dir_x : 1e30 );
     delta_dist_y = std::abs( ray_dir_y ? 1 / ray_dir_y : 1e30 );
@@ -110,13 +108,19 @@ Camera::Render (
 
 
 
-    if ( side_dist_x < side_dist_y ) wall_line_len = side_dist_x;
-    else                             wall_line_len = side_dist_y;
+    if ( side_dist_x < side_dist_y )
+    {
+      wall_line_len = side_dist_x ? buff_h / side_dist_x : 1e30;
+    }
+    else
+    {
+      wall_line_len = side_dist_y ? buff_h / side_dist_y : 1e30;
+    }
+
+    line_mask = buff_h; 
 
     wall_line_len *= world . map[ map_x + map_y * world.map_width ] . height;
 
-
-    line_mask = buff_h; 
 
     
     while ( true )
@@ -148,24 +152,24 @@ Camera::Render (
       
       if ( side == 0 )  local_hit_pos = hit_pos_y;
       else              local_hit_pos = hit_pos_x;
-      local_hit_pos -= static_cast< int32_t >( local_hit_pos );
+      local_hit_pos -= static_cast< int64_t >( local_hit_pos );
       
       
       //Calculate a hittable's line height 
       old_wall_line_len = wall_line_len;
-      basic_wall_line_len = hit_distance ? buff_h / hit_distance : INT_MAX;
+      basic_wall_line_len = hit_distance ? buff_h / hit_distance : 1e30;
       wall_line_len = basic_wall_line_len * hittable -> height;
 
 
       //Calcultate hittable's top side line points
       line_y2 = line_mask;
-      line_y1 = static_cast< int32_t >(
-        buff_h / 2 + basic_wall_line_len / 2 - wall_line_len
+      line_y1 = DowngradeType< int16_t >(
+        buff_h / 2 - wall_line_len + basic_wall_line_len / 2
       );
+
 
       if ( line_y1 < 0 )          line_y1 = 0;
       if ( line_mask > line_y1 )  line_mask = line_y1;
-
 
 
       //linear interpolation:
@@ -189,8 +193,8 @@ Camera::Render (
         weight = current_hit_distance / hit_distance;
         current_hit_pos_x = weight * hit_pos_x + ( 1.0 - weight) * position_x;
         current_hit_pos_y = weight * hit_pos_y + ( 1.0 - weight) * position_y;
-        current_hit_pos_x -= static_cast< int >( current_hit_pos_x );
-        current_hit_pos_y -= static_cast< int >( current_hit_pos_y );
+        current_hit_pos_x -= static_cast< int64_t >( current_hit_pos_x );
+        current_hit_pos_y -= static_cast< int64_t >( current_hit_pos_y );
 
         texture_u = current_hit_pos_x * hittable -> m_texture -> width;
         texture_v = current_hit_pos_y * hittable -> m_texture -> height;
@@ -210,10 +214,10 @@ Camera::Render (
 
       //draw hittable border
       line_y2 = line_y1;
-      line_y1 = static_cast< int32_t >(
-        buff_h / 2 + basic_wall_line_len / 2 - wall_line_len 
+      line_y1 = DowngradeType< int16_t >(
+        buff_h / 2 + basic_wall_line_len / 2 - wall_line_len + 1
       );
-     
+      
       
       if ( line_mask < line_y2 )  line_y2 = line_mask;
       if ( line_y1 < 0 )          line_y1 = 0;
@@ -221,7 +225,7 @@ Camera::Render (
       if ( line_mask > line_y1 )  line_mask = line_y1;
 
 
-      texture_u = static_cast< int32_t >(
+      texture_u = DowngradeType< int32_t >(
         local_hit_pos * hittable -> m_texture -> width
       );
       
@@ -245,11 +249,19 @@ Camera::Render (
       //    -> (wall_line_len - buff_h - (
       //      [bottom part] basic_wall_line_len / 2 - buff_h / 2
       //    )
+
       texture_pos = (
         line_y1 - buff_h / 2 - basic_wall_line_len / 2 + wall_line_len 
       ) * texture_step;
 
-      
+     
+      /*
+      line_y1 += position_z * basic_wall_line_len;
+      line_y2 += position_z * basic_wall_line_len;
+
+      if ( line_y1 >= buff_h ) line_y1 = buff_h - 1;
+      if ( line_y2 >= buff_h ) line_y2 = buff_h - 1;
+      */
 
       for ( v = line_y1; v < line_y2; ++v )
       {

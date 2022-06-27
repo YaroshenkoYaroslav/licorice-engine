@@ -22,7 +22,7 @@ struct Hittable
 struct World
 {
   Hittable *  map;
-  int         map_width;
+  int64_t     map_width;
 };
 
 }

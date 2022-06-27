@@ -3,7 +3,7 @@
 
 #include <LicoriceEngine/World.hpp>
 #include <cmath>
-#include <climits>
+#include <limits>
 #include <iostream>
 
 namespace LicEngine
@@ -24,10 +24,20 @@ class Camera
       double angle
   );
 
+
+ private:
+  
+  template < class U, class T >
+  inline U  DowngradeType (
+      T x
+  );
+
+
  public:
 
   double  position_x;
   double  position_y;
+  double  position_z;
 
   double  direction_x;
   double  direction_y;
@@ -37,6 +47,10 @@ class Camera
 
   double  max_see_through_height;
 };
+
+
+#include <LicoriceEngine/Camera.ini>
+
 
 }
 

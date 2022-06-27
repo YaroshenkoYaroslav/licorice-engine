@@ -142,6 +142,7 @@ main (
 
   camera.position_x = 3;
   camera.position_y = 3;
+  camera.position_z = 0.5;
  
   camera.direction_x = -1;
   camera.direction_y = 0;
