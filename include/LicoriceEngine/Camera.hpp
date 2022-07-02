@@ -13,14 +13,18 @@ class Camera
 {
  public:
   
-  void  Render ( 
+  void
+  Render
+  ( 
       Uint32 * const  buffer,
       int16_t         buff_w,
       int16_t         buff_h, 
       const World &   world
   );
   
-  void  Rotate (
+  void
+  Rotate
+  (
       double angle
   );
 
@@ -28,7 +32,9 @@ class Camera
  private:
   
   template < class U, class T >
-  inline U  DowngradeType (
+  inline U
+  DowngradeType
+  (
       T x
   );
 

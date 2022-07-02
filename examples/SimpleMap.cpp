@@ -28,9 +28,9 @@ CreateLicTexture (
     const char * img_pass
 )
 {
-  SDL_PixelFormat   *   format;
-  SDL_Surface       *   sdl_surface;
-  LicEngine::Texture           *   new_texture;
+  SDL_PixelFormat    *  format;
+  SDL_Surface        *  sdl_surface;
+  LicEngine::Texture *  new_texture;
 
   format      = SDL_AllocFormat( SDL_PIXELFORMAT_RGBA8888 );
   sdl_surface = SDL_ConvertSurface( IMG_Load( img_pass ), format, 0 );
@@ -112,7 +112,7 @@ main (
     {t[3], 3}, {t[0],    0}, {t[0], 0   }, {t[3], 0   }, {t[4], 0   }, {t[1], 2   }, {t[3], 6  },
     {t[3], 3}, {t[0],    0}, {t[0], 0   }, {t[3], 0   }, {t[4], 0   }, {t[1], 1.75}, {t[3], 5.3},
     {t[3], 3}, {t[0],    0}, {t[0], 0   }, {t[3], 0   }, {t[3], 0   }, {t[1], 1.25}, {t[3], 5.2},
-    {t[3], 3}, {t[2],    0}, {t[2], 0.25}, {t[2], 0.5 }, {t[2], 0.75}, {t[1], 1   }, {t[3], 5.1},
+    {t[3], 3}, {t[2],    0.1}, {t[2], 0.15}, {t[2], 0.30 }, {t[2], 0.4}, {t[1], 1   }, {t[3], 5.1},
     {t[3], 3}, {t[3], 3.25}, {t[3], 3.5 }, {t[3], 3.75}, {t[3], 4   }, {t[3], 4.5 }, {t[3], 5  },
   };
 
@@ -138,11 +138,12 @@ main (
 
   m_world.map = map;
   m_world.map_width = map_width;
+  m_world.map_height = map_height;
 
 
   camera.position_x = 3;
   camera.position_y = 3;
-  camera.position_z = 0.5;
+  camera.position_z = 0;
  
   camera.direction_x = -1;
   camera.direction_y = 0;
@@ -188,12 +189,18 @@ main (
     
     camera.Rotate( ( keys[ 2 ] + keys[ 3 ] ) * elapsed * rotating_speed );
     
-    camera.position_x += (
+    double moving_x = (
       ( keys[ 0 ] + keys[ 1 ] ) * camera.direction_x * elapsed * moving_speed
     );
-    camera.position_y += (
+    double moving_y = (
       ( keys[ 0 ] + keys[ 1 ] ) * camera.direction_y * elapsed * moving_speed
     );
+    camera.position_x += moving_x;
+    camera.position_y += moving_y;
+    camera.position_z = map[
+      (int)camera.position_y * map_width + (int)camera.position_x
+    ].height;
+      
         
 
     SDL_LockTexture( sdl_texture, NULL, &pixels, &pixels_pitch );
@@ -206,7 +213,7 @@ main (
     camera.Render(
       reinterpret_cast< Uint32 * >( pixels ), 
       window_width, 
-      window_height,// - 100, 
+      window_height, 
       m_world
     );
    
