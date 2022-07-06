@@ -20,9 +20,11 @@ Camera::Render
   int16_t   u;
   int16_t   v;
   
-  int16_t    line_mask;
-  int16_t    line_y1;
-  int16_t    line_y2;
+  int16_t   bottom_line_mask;
+  int16_t   top_line_mask;
+  int16_t   unmusk_line_y;
+  int16_t   line_y1;
+  int16_t   line_y2;
 
   int32_t   texture_u;
   int32_t   texture_v;
@@ -34,7 +36,6 @@ Camera::Render
 
   double    basic_wall_line_len;
   double    wall_line_len;
-  double    old_wall_line_len;
   
   double    camera_x;
   
@@ -57,19 +58,15 @@ Camera::Render
   double    texture_step;
   double    texture_pos;
 
-  double    delta_wall_line_len;
+  double    act_distance_correction;
   double    current_hit_distance;
   double    weight;
   double    current_hit_pos_x;
   double    current_hit_pos_y;
 
-
   const Hittable *  hittable;
+  const Hittable *  old_hittable;
   
-  
-  for ( u = 0; u < buff_w; ++u )
-    for ( v = 0; v < buff_h; ++v )
-      *( buffer + u + v * buff_w ) = 0;
 
   for ( u = 0; u < buff_w; ++u )
   {
@@ -108,12 +105,13 @@ Camera::Render
     }
 
     
-    line_mask = buff_h;
+    top_line_mask = buff_h;
+    bottom_line_mask = 0;
+   
 
-    
     while ( true )
     {
-      hittable = &world . map[ map_x + map_y * world.map_width ]; 
+      old_hittable = &world . map[ map_x + map_y * world.map_width ];
 
       //Move the ray
       if ( side_dist_x < side_dist_y )
@@ -129,6 +127,8 @@ Camera::Render
         side = 1;
       }
       
+      hittable = &world . map[ map_x + map_y * world.map_width ]; 
+      
 
       //Caclualte a distance
       if ( side == 0 )  hit_distance = side_dist_x - delta_dist_x;
@@ -137,99 +137,109 @@ Camera::Render
       hit_pos_y = position_y + hit_distance * ray_dir_y;
       
       //Calculate local hit position
-      if ( side == 0 )  local_hit_pos = position_y + hit_distance * ray_dir_y;
-      else              local_hit_pos = position_x + hit_distance * ray_dir_x;
+      if ( side == 0 )  local_hit_pos = hit_pos_y;
+      else              local_hit_pos = hit_pos_x;
       local_hit_pos -= static_cast< int64_t >( local_hit_pos );
       
-      
-      //Calculate a hittable's line height 
       basic_wall_line_len = hit_distance ? buff_h / hit_distance : 1e30;
-      wall_line_len = basic_wall_line_len * hittable -> height;
-
-
-      //Calcultate hittable's top side line points
-      line_y2 = line_mask;
-      line_y1 = DowngradeType< int16_t >(
-        buff_h / 2 + basic_wall_line_len / 2 - wall_line_len
-          + position_z * basic_wall_line_len
-      );
       
-      delta_wall_line_len = wall_line_len / ( line_y1 - buff_h / 2 );
 
-      if ( line_y1 < 0 )          line_y1 = 0;
-      if ( line_mask > line_y1 )  line_mask = line_y1;
+      
+      //
+      //  CEIL BOTTOM FACE
+      //
+      wall_line_len = basic_wall_line_len * old_hittable -> ceil_height;
+      
+      line_y1 = bottom_line_mask;
+      line_y2 = DowngradeType< int16_t >( std::round (
+        buff_h / 2.0 + wall_line_len
+          - basic_wall_line_len * ( old_hittable -> ceil_z - position_z - 0.5 )
+      ) );
 
-      //Draw hittable's top side
+      if ( line_y2 > top_line_mask )
+      {
+        line_y2 = top_line_mask;
+      }
+      if ( bottom_line_mask < line_y2 )
+      {
+        bottom_line_mask = line_y2;
+      }
+
+      double act_distance_correction = (
+        2.0 * old_hittable -> ceil_z - 2 * position_z  - 3.0
+      );
       for ( v = line_y1; v < line_y2; ++v )
       {
-        wall_line_len += delta_wall_line_len;
-        current_hit_distance = (
-          buff_h / ( 2.0 * ( v + wall_line_len ) - buff_h )
-        ) * ( position_z * 2.0 + 1.0 );
+        current_hit_distance = buff_h / ( buff_h - 2.0 * v );
+        current_hit_distance *= act_distance_correction;
         weight = current_hit_distance / hit_distance;
         current_hit_pos_x = weight * hit_pos_x + ( 1.0 - weight ) * position_x;
         current_hit_pos_y = weight * hit_pos_y + ( 1.0 - weight ) * position_y;
         current_hit_pos_x -= static_cast< int64_t >( current_hit_pos_x );
         current_hit_pos_y -= static_cast< int64_t >( current_hit_pos_y );
 
-        texture_u = current_hit_pos_x * hittable -> m_texture -> width;
-        texture_v = current_hit_pos_y * hittable -> m_texture -> height;
+        texture_u = current_hit_pos_x * old_hittable -> ceil_bottom_t -> width;
+        texture_v = current_hit_pos_y * old_hittable -> ceil_bottom_t -> height;
 
-        color = hittable -> m_texture -> pixels[
-          hittable -> m_texture -> width * texture_v + texture_u
+        color = old_hittable -> ceil_bottom_t -> pixels[
+          old_hittable -> ceil_bottom_t -> width * texture_v + texture_u
         ];
 
         *( buffer + u + v * buff_w ) = color;
       }
-     
 
 
-      hittable = &world.map[ map_x + map_y * world.map_width ]; 
 
-      wall_line_len = basic_wall_line_len * hittable -> height;
+      //
+      //  CEIL WALL
+      //
+      wall_line_len = basic_wall_line_len * hittable -> ceil_height;
 
-      //draw hittable border
-      line_y2 = line_y1;
-      line_y1 = DowngradeType< int16_t >(
-        buff_h / 2 + basic_wall_line_len / 2 - wall_line_len + 1
-          + position_z * basic_wall_line_len
-      );
+      unmusk_line_y = line_y2;
+      line_y1 = unmusk_line_y;
+      line_y2 = DowngradeType< int16_t >( std::round (
+        buff_h / 2.0 + wall_line_len
+          - basic_wall_line_len * ( hittable -> ceil_z - position_z - 0.5 )
+      ) );
       
       
-      if ( line_mask < line_y2 )  line_y2 = line_mask;
-      if ( line_y1 < 0 )          line_y1 = 0;
+      if ( bottom_line_mask > line_y1 )
+      {
+        line_y1 = bottom_line_mask;
+      }
+      if ( line_y2 > top_line_mask )
+      {
+        line_y2 = top_line_mask;
+      }
       
-      if ( line_mask > line_y1 )  line_mask = line_y1;
+      if ( bottom_line_mask < line_y2 )
+      {
+        bottom_line_mask = line_y2;
+      }
 
 
       texture_u = DowngradeType< int32_t >(
-        local_hit_pos * hittable -> m_texture -> width
+        local_hit_pos * hittable -> ceil_border_t -> width
       );
       
       
       if ( side == 0  &&  ray_dir_x > 0 ) 
       {
-        texture_u = hittable -> m_texture -> width - texture_u - 1;
+        texture_u = hittable -> ceil_border_t -> width - texture_u - 1;
       }
       
       if ( side == 1  &&  ray_dir_y < 0 )
       {
-        texture_u = hittable -> m_texture -> width - texture_u - 1;
+        texture_u = hittable -> ceil_border_t -> width - texture_u - 1;
       }
 
       
-      texture_step = hittable -> m_texture -> height / wall_line_len;
-
-      //for basic wall_line_len 
-      //    -> - buff_h / 2 + basic_wall_line_len / 2
-      //for current hittable height
-      //    -> (wall_line_len - buff_h - (
-      //      [bottom part] basic_wall_line_len / 2 - buff_h / 2
-      //    )
+      texture_step = hittable -> ceil_border_t -> height / wall_line_len;
+      
       texture_pos = (
-        line_y1 - buff_h / 2 - basic_wall_line_len / 2 + wall_line_len
-          - position_z * basic_wall_line_len
-      ) * texture_step;
+        hittable -> ceil_border_t -> height 
+          - ( line_y2 - line_y1 ) * texture_step
+      ); 
 
      
       for ( v = line_y1; v < line_y2; ++v )
@@ -237,8 +247,122 @@ Camera::Render
         texture_v = static_cast< int32_t >( texture_pos );
         texture_pos += texture_step;
 
-        color = hittable -> m_texture -> pixels[
-          hittable -> m_texture -> width * texture_v + texture_u
+        color = hittable -> ceil_border_t -> pixels[
+          hittable -> ceil_border_t -> width * texture_v + texture_u
+        ];
+
+        if ( side == 1 )  color = ( color >> 1 ) & 0x7F7F7F7Fu;
+
+        *( buffer + u + v * buff_w ) = color;
+      }
+      
+    
+      
+      
+      
+      //
+      //  FLOOR TOP SIDE
+      //
+      wall_line_len = basic_wall_line_len * old_hittable -> floor_height;
+      
+      line_y2 = top_line_mask;
+      line_y1 = DowngradeType< int16_t >( std::round (
+        buff_h / 2.0 - wall_line_len 
+          + basic_wall_line_len * ( position_z + 0.5 )
+      ) );
+
+      if ( line_y1 < bottom_line_mask )
+      {
+        line_y1 = bottom_line_mask;
+      }
+      if ( top_line_mask > line_y1 )
+      {
+        top_line_mask = line_y1;
+      }
+
+      act_distance_correction = (
+        2.0 * position_z - 2.0 * old_hittable -> floor_height + 1.0
+      );
+      for ( v = line_y1; v < line_y2; ++v )
+      {
+        current_hit_distance = buff_h / ( 2.0 * v - buff_h );
+        current_hit_distance *= act_distance_correction;
+        weight = current_hit_distance / hit_distance;
+        current_hit_pos_x = weight * hit_pos_x + ( 1.0 - weight ) * position_x;
+        current_hit_pos_y = weight * hit_pos_y + ( 1.0 - weight ) * position_y;
+        current_hit_pos_x -= static_cast< int64_t >( current_hit_pos_x );
+        current_hit_pos_y -= static_cast< int64_t >( current_hit_pos_y );
+
+        texture_u = current_hit_pos_x * old_hittable -> floor_top_t -> width;
+        texture_v = current_hit_pos_y * old_hittable -> floor_top_t -> height;
+
+        color = old_hittable -> floor_top_t -> pixels[
+          old_hittable -> floor_top_t -> width * texture_v + texture_u
+        ];
+
+        *( buffer + u + v * buff_w ) = color;
+      }
+     
+
+
+      //
+      //  FLOOR WALL
+      //
+      wall_line_len = basic_wall_line_len * hittable -> floor_height;
+
+      //draw hittable border
+      line_y2 = line_y1;
+      line_y1 = DowngradeType< int16_t >( std::round (
+        buff_h / 2.0 - wall_line_len 
+          + basic_wall_line_len * ( position_z + 0.5 )
+      ) );
+
+      unmusk_line_y = line_y1;
+      
+      
+      if ( top_line_mask < line_y2 )
+      {
+        line_y2 = top_line_mask;
+      }
+      if ( line_y1 < bottom_line_mask )
+      {
+        line_y1 = bottom_line_mask;
+      }
+      
+      if ( top_line_mask > line_y1 )
+      {
+        top_line_mask = line_y1;
+      }
+
+
+      texture_u = DowngradeType< int32_t >(
+        local_hit_pos * hittable -> floor_border_t -> width
+      );
+      
+      
+      if ( side == 0  &&  ray_dir_x > 0 ) 
+      {
+        texture_u = hittable -> floor_border_t -> width - texture_u - 1;
+      }
+      
+      if ( side == 1  &&  ray_dir_y < 0 )
+      {
+        texture_u = hittable -> floor_border_t -> width - texture_u - 1;
+      }
+
+      
+      texture_step = hittable -> floor_border_t -> height / wall_line_len;
+
+      texture_pos = ( line_y1 - unmusk_line_y ) * texture_step;
+
+     
+      for ( v = line_y1; v < line_y2; ++v )
+      {
+        texture_v = static_cast< int32_t >( texture_pos );
+        texture_pos += texture_step;
+
+        color = hittable -> floor_border_t -> pixels[
+          hittable -> floor_border_t -> width * texture_v + texture_u
         ];
 
         if ( side == 1 )  color = ( color >> 1 ) & 0x7F7F7F7Fu;
@@ -247,7 +371,9 @@ Camera::Render
       }
 
 
-      if ( hittable -> height >= max_see_through_height )  break;
+
+
+      if ( hittable -> floor_height >= max_see_through_height )  break;
     }
   }
 }

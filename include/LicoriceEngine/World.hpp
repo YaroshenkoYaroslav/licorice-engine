@@ -15,8 +15,13 @@ struct Texture
 
 struct Hittable
 {
-  Texture * m_texture;
-  double    height;
+  Texture * floor_border_t;
+  Texture * floor_top_t;
+  Texture * ceil_border_t;
+  Texture * ceil_bottom_t;
+  double    floor_height;
+  double    ceil_height;
+  double    ceil_z;
 };
 
 struct World
