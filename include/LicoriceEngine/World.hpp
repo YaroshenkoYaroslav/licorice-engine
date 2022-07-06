@@ -13,22 +13,30 @@ struct Texture
   int       height;
 };
 
+
 struct Hittable
 {
-  Texture * floor_border_t;
-  Texture * floor_top_t;
-  Texture * ceil_border_t;
-  Texture * ceil_bottom_t;
+  int32_t   floor_border_index;
+  int32_t   floor_top_index;
+  int32_t   ceil_border_index;
+  int32_t   ceil_bottom_index;
   double    floor_height;
+  double    floor_z;
   double    ceil_height;
   double    ceil_z;
 };
 
 struct World
 {
-  Hittable *  map;
-  int64_t     map_width;
-  int64_t     map_height;
+  int32_t *   map;
+  int32_t     map_width;
+  int32_t     map_height;
+
+  Hittable *  hittables;
+  int32_t     hittables_count;
+
+  Texture *   textures;
+  int16_t     textures_count;
 };
 
 }

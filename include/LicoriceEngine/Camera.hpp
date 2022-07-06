@@ -32,7 +32,8 @@ class Camera
  private:
   
   template < class U, class T >
-  inline U
+  inline
+  U
   DowngradeType
   (
       T x
@@ -50,8 +51,6 @@ class Camera
 
   double  viewing_plane_x;
   double  viewing_plane_y;
-
-  double  max_see_through_height;
 };
 
 
