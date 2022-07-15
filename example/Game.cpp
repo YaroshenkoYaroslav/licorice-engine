@@ -30,7 +30,7 @@ Game::~Game
   {
     delete m_world . textures[ i ] . pixels;
   }
-  delete [] m_world . hittables;
+  delete [] m_world . shapes;
   delete [] m_world . textures;
   delete [] m_world . map;
 
@@ -93,7 +93,7 @@ Game::LoadSceneFromConfig
   nlohmann::basic_json<>  x_json;
   nlohmann::basic_json<>  y_json;
   std::ifstream           inf;
-  LicEngine::Texture      new_hittable_texture;
+  LicEngine::Texture      new_shape_texture;
   int32_t                 x;
   int32_t                 y;
   int32_t                 i;
@@ -112,46 +112,51 @@ Game::LoadSceneFromConfig
   inf >> m_json;
   inf . close();
   
+  
   m_world . map_width = m_json[ "map_width" ];
   m_world . map_height = m_json[ "map_height" ];
   
-  m_world . map = new int32_t[
+  m_world . map = new LicEngine::Hittable[
     m_world . map_width * m_world . map_height
   ];
-  
-  i = 0;
-  m_world . textures_count = m_json[ "textures_count" ];
-  m_world . textures = new LicEngine::Texture[ m_world . textures_count ];
-
-  for ( const std::string & texture_pass : m_json[ "textures" ] ) {
-    new_hittable_texture = LoadTextureFromFile( texture_pass . c_str() );
-    
-    if ( new_hittable_texture . pixels == nullptr )
-    {
-      return false;
-    }
-    
-    m_world . textures[ i++ ] = new_hittable_texture;
-  }
-  
-  i = 0;
-  m_world . hittables_count = m_json[ "hittables_count" ];
-  m_world . hittables = new LicEngine::Hittable[ m_world . hittables_count ];
-
-  for ( const LicEngine::Hittable & c_hittable : m_json[ "hittables" ] ) {
-    m_world . hittables[ i++ ] = c_hittable;
-  }
 
   for ( y = 0; y < m_world . map_height; ++y )
   {
     y_json = m_json[ "map" ][ std::to_string( y ) ];
     for ( x = 0; x < m_world . map_width; ++x )
     {
-      m_world . map[ x + y * m_world . map_width ] = y_json[ 
-        std::to_string(x)
-      ];
+      x_json = y_json[ td::to_string( x ) ];
+
+      m_world . map[ x + y * m_world . map_width ] = {
+        x_json[ "index" ],
+        x_json[ "type" ]
+      };
     }
   }
+
+
+  i = 0;
+  m_world . textures_count = m_json[ "textures_count" ];
+  m_world . textures = new LicEngine::Texture[ m_world . textures_count ];
+
+  for ( const std::string & texture_pass : m_json[ "textures" ] ) {
+    new_shape_texture = LoadTextureFromFile( texture_pass . c_str() );
+    
+    if ( new_shape_texture . pixels == nullptr )  return false;
+    
+    m_world . textures[ i++ ] = new_shape_texture;
+  }
+ 
+
+  i = 0;
+  m_world . shapes_count = m_json[ "shapes_count" ];
+  m_world . shapes = new LicEngine::Shape[ m_world . shapes_count ];
+
+  for ( const LicEngine::Shape & c_shape : m_json[ "shapes" ] ) {
+    m_world . shapes[ i++ ] = c_shape;
+  }
+
+
 
 
   m_player . o_world = & m_world;
@@ -167,8 +172,8 @@ Game::LoadSceneFromConfig
   ) ];
 
   m_player . m_camera . position_z = (
-    m_world . hittables[ i ] . floor_height
-      + m_world . hittables[ i ] . floor_z
+    m_world . shapes[ i ] . floor_height
+      + m_world . shapes[ i ] . floor_z
   );
  
   m_player . m_camera . direction_x = -1;

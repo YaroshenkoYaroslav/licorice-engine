@@ -1,6 +1,10 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/Executable.dir/map_editor/main.cpp.o"
-  "CMakeFiles/Executable.dir/map_editor/main.cpp.o.d"
+  "CMakeFiles/Executable.dir/example/Game.cpp.o"
+  "CMakeFiles/Executable.dir/example/Game.cpp.o.d"
+  "CMakeFiles/Executable.dir/example/Player.cpp.o"
+  "CMakeFiles/Executable.dir/example/Player.cpp.o.d"
+  "CMakeFiles/Executable.dir/example/main.cpp.o"
+  "CMakeFiles/Executable.dir/example/main.cpp.o.d"
   "Executable"
   "Executable.pdb"
 )

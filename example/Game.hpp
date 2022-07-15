@@ -66,7 +66,7 @@ class Game
   LicEngine::Texture
   LoadTextureFromFile
   (
-    const char *  img_pass
+      const char *  img_pass
   );
 
  private:

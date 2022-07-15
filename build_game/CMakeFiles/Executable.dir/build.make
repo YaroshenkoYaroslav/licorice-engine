@@ -69,33 +69,65 @@ include CMakeFiles/Executable.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/Executable.dir/flags.make
 
-CMakeFiles/Executable.dir/map_editor/main.cpp.o: CMakeFiles/Executable.dir/flags.make
-CMakeFiles/Executable.dir/map_editor/main.cpp.o: ../map_editor/main.cpp
-CMakeFiles/Executable.dir/map_editor/main.cpp.o: CMakeFiles/Executable.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/buwnertys/programming/licorice-engine/build_game/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Executable.dir/map_editor/main.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Executable.dir/map_editor/main.cpp.o -MF CMakeFiles/Executable.dir/map_editor/main.cpp.o.d -o CMakeFiles/Executable.dir/map_editor/main.cpp.o -c /home/buwnertys/programming/licorice-engine/map_editor/main.cpp
+CMakeFiles/Executable.dir/example/main.cpp.o: CMakeFiles/Executable.dir/flags.make
+CMakeFiles/Executable.dir/example/main.cpp.o: ../example/main.cpp
+CMakeFiles/Executable.dir/example/main.cpp.o: CMakeFiles/Executable.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/buwnertys/programming/licorice-engine/build_game/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Executable.dir/example/main.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Executable.dir/example/main.cpp.o -MF CMakeFiles/Executable.dir/example/main.cpp.o.d -o CMakeFiles/Executable.dir/example/main.cpp.o -c /home/buwnertys/programming/licorice-engine/example/main.cpp
 
-CMakeFiles/Executable.dir/map_editor/main.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Executable.dir/map_editor/main.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/buwnertys/programming/licorice-engine/map_editor/main.cpp > CMakeFiles/Executable.dir/map_editor/main.cpp.i
+CMakeFiles/Executable.dir/example/main.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Executable.dir/example/main.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/buwnertys/programming/licorice-engine/example/main.cpp > CMakeFiles/Executable.dir/example/main.cpp.i
 
-CMakeFiles/Executable.dir/map_editor/main.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Executable.dir/map_editor/main.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/buwnertys/programming/licorice-engine/map_editor/main.cpp -o CMakeFiles/Executable.dir/map_editor/main.cpp.s
+CMakeFiles/Executable.dir/example/main.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Executable.dir/example/main.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/buwnertys/programming/licorice-engine/example/main.cpp -o CMakeFiles/Executable.dir/example/main.cpp.s
+
+CMakeFiles/Executable.dir/example/Game.cpp.o: CMakeFiles/Executable.dir/flags.make
+CMakeFiles/Executable.dir/example/Game.cpp.o: ../example/Game.cpp
+CMakeFiles/Executable.dir/example/Game.cpp.o: CMakeFiles/Executable.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/buwnertys/programming/licorice-engine/build_game/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/Executable.dir/example/Game.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Executable.dir/example/Game.cpp.o -MF CMakeFiles/Executable.dir/example/Game.cpp.o.d -o CMakeFiles/Executable.dir/example/Game.cpp.o -c /home/buwnertys/programming/licorice-engine/example/Game.cpp
+
+CMakeFiles/Executable.dir/example/Game.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Executable.dir/example/Game.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/buwnertys/programming/licorice-engine/example/Game.cpp > CMakeFiles/Executable.dir/example/Game.cpp.i
+
+CMakeFiles/Executable.dir/example/Game.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Executable.dir/example/Game.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/buwnertys/programming/licorice-engine/example/Game.cpp -o CMakeFiles/Executable.dir/example/Game.cpp.s
+
+CMakeFiles/Executable.dir/example/Player.cpp.o: CMakeFiles/Executable.dir/flags.make
+CMakeFiles/Executable.dir/example/Player.cpp.o: ../example/Player.cpp
+CMakeFiles/Executable.dir/example/Player.cpp.o: CMakeFiles/Executable.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/buwnertys/programming/licorice-engine/build_game/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/Executable.dir/example/Player.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Executable.dir/example/Player.cpp.o -MF CMakeFiles/Executable.dir/example/Player.cpp.o.d -o CMakeFiles/Executable.dir/example/Player.cpp.o -c /home/buwnertys/programming/licorice-engine/example/Player.cpp
+
+CMakeFiles/Executable.dir/example/Player.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Executable.dir/example/Player.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/buwnertys/programming/licorice-engine/example/Player.cpp > CMakeFiles/Executable.dir/example/Player.cpp.i
+
+CMakeFiles/Executable.dir/example/Player.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Executable.dir/example/Player.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/buwnertys/programming/licorice-engine/example/Player.cpp -o CMakeFiles/Executable.dir/example/Player.cpp.s
 
 # Object files for target Executable
 Executable_OBJECTS = \
-"CMakeFiles/Executable.dir/map_editor/main.cpp.o"
+"CMakeFiles/Executable.dir/example/main.cpp.o" \
+"CMakeFiles/Executable.dir/example/Game.cpp.o" \
+"CMakeFiles/Executable.dir/example/Player.cpp.o"
 
 # External object files for target Executable
 Executable_EXTERNAL_OBJECTS =
 
-Executable: CMakeFiles/Executable.dir/map_editor/main.cpp.o
+Executable: CMakeFiles/Executable.dir/example/main.cpp.o
+Executable: CMakeFiles/Executable.dir/example/Game.cpp.o
+Executable: CMakeFiles/Executable.dir/example/Player.cpp.o
 Executable: CMakeFiles/Executable.dir/build.make
 Executable: libEngine.a
 Executable: libExtlibs.a
 Executable: CMakeFiles/Executable.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/buwnertys/programming/licorice-engine/build_game/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable Executable"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/buwnertys/programming/licorice-engine/build_game/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable Executable"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Executable.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

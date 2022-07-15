@@ -155,6 +155,78 @@ Executable/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Executable.dir/build.make CMakeFiles/Executable.dir/build
 .PHONY : Executable/fast
 
+example/Game.o: example/Game.cpp.o
+.PHONY : example/Game.o
+
+# target to build an object file
+example/Game.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Executable.dir/build.make CMakeFiles/Executable.dir/example/Game.cpp.o
+.PHONY : example/Game.cpp.o
+
+example/Game.i: example/Game.cpp.i
+.PHONY : example/Game.i
+
+# target to preprocess a source file
+example/Game.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Executable.dir/build.make CMakeFiles/Executable.dir/example/Game.cpp.i
+.PHONY : example/Game.cpp.i
+
+example/Game.s: example/Game.cpp.s
+.PHONY : example/Game.s
+
+# target to generate assembly for a file
+example/Game.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Executable.dir/build.make CMakeFiles/Executable.dir/example/Game.cpp.s
+.PHONY : example/Game.cpp.s
+
+example/Player.o: example/Player.cpp.o
+.PHONY : example/Player.o
+
+# target to build an object file
+example/Player.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Executable.dir/build.make CMakeFiles/Executable.dir/example/Player.cpp.o
+.PHONY : example/Player.cpp.o
+
+example/Player.i: example/Player.cpp.i
+.PHONY : example/Player.i
+
+# target to preprocess a source file
+example/Player.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Executable.dir/build.make CMakeFiles/Executable.dir/example/Player.cpp.i
+.PHONY : example/Player.cpp.i
+
+example/Player.s: example/Player.cpp.s
+.PHONY : example/Player.s
+
+# target to generate assembly for a file
+example/Player.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Executable.dir/build.make CMakeFiles/Executable.dir/example/Player.cpp.s
+.PHONY : example/Player.cpp.s
+
+example/main.o: example/main.cpp.o
+.PHONY : example/main.o
+
+# target to build an object file
+example/main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Executable.dir/build.make CMakeFiles/Executable.dir/example/main.cpp.o
+.PHONY : example/main.cpp.o
+
+example/main.i: example/main.cpp.i
+.PHONY : example/main.i
+
+# target to preprocess a source file
+example/main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Executable.dir/build.make CMakeFiles/Executable.dir/example/main.cpp.i
+.PHONY : example/main.cpp.i
+
+example/main.s: example/main.cpp.s
+.PHONY : example/main.s
+
+# target to generate assembly for a file
+example/main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Executable.dir/build.make CMakeFiles/Executable.dir/example/main.cpp.s
+.PHONY : example/main.cpp.s
+
 extlibs/src/imgui.o: extlibs/src/imgui.cpp.o
 .PHONY : extlibs/src/imgui.o
 
@@ -347,30 +419,6 @@ extlibs/src/imgui_widgets.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Extlibs.dir/build.make CMakeFiles/Extlibs.dir/extlibs/src/imgui_widgets.cpp.s
 .PHONY : extlibs/src/imgui_widgets.cpp.s
 
-map_editor/main.o: map_editor/main.cpp.o
-.PHONY : map_editor/main.o
-
-# target to build an object file
-map_editor/main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Executable.dir/build.make CMakeFiles/Executable.dir/map_editor/main.cpp.o
-.PHONY : map_editor/main.cpp.o
-
-map_editor/main.i: map_editor/main.cpp.i
-.PHONY : map_editor/main.i
-
-# target to preprocess a source file
-map_editor/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Executable.dir/build.make CMakeFiles/Executable.dir/map_editor/main.cpp.i
-.PHONY : map_editor/main.cpp.i
-
-map_editor/main.s: map_editor/main.cpp.s
-.PHONY : map_editor/main.s
-
-# target to generate assembly for a file
-map_editor/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Executable.dir/build.make CMakeFiles/Executable.dir/map_editor/main.cpp.s
-.PHONY : map_editor/main.cpp.s
-
 src/LicoriceEngine/Camera.o: src/LicoriceEngine/Camera.cpp.o
 .PHONY : src/LicoriceEngine/Camera.o
 
@@ -406,6 +454,15 @@ help:
 	@echo "... Engine"
 	@echo "... Executable"
 	@echo "... Extlibs"
+	@echo "... example/Game.o"
+	@echo "... example/Game.i"
+	@echo "... example/Game.s"
+	@echo "... example/Player.o"
+	@echo "... example/Player.i"
+	@echo "... example/Player.s"
+	@echo "... example/main.o"
+	@echo "... example/main.i"
+	@echo "... example/main.s"
 	@echo "... extlibs/src/imgui.o"
 	@echo "... extlibs/src/imgui.i"
 	@echo "... extlibs/src/imgui.s"
@@ -430,9 +487,6 @@ help:
 	@echo "... extlibs/src/imgui_widgets.o"
 	@echo "... extlibs/src/imgui_widgets.i"
 	@echo "... extlibs/src/imgui_widgets.s"
-	@echo "... map_editor/main.o"
-	@echo "... map_editor/main.i"
-	@echo "... map_editor/main.s"
 	@echo "... src/LicoriceEngine/Camera.o"
 	@echo "... src/LicoriceEngine/Camera.i"
 	@echo "... src/LicoriceEngine/Camera.s"

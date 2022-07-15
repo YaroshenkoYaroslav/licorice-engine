@@ -67,10 +67,13 @@ Camera::Render
   double    current_hit_pos_x;
   double    current_hit_pos_y;
 
+
   const Hittable *  hittable;
-  
   const Texture  *  texture;
+  const Shape *     shape;
   
+
+
 
   for ( u = 0; u < buff_w; ++u )
   {
@@ -111,10 +114,9 @@ Camera::Render
     
     top_line_mask = buff_h;
     bottom_line_mask = 0;
-   
-    hittable = &world . hittables[
-      world . map[ map_x + map_y * world.map_width ]
-    ];
+  
+    hittable = & world . map[ map_x + map_y * world.map_width ];
+    shape = &world . shapes [ hittable -> index ];
 
 
     while ( true )
@@ -151,12 +153,12 @@ Camera::Render
       //
       //  CEIL BOTTOM FACE
       //
-      wall_line_len = basic_wall_line_len * hittable -> ceil_height;
+      wall_line_len = basic_wall_line_len * shape -> ceil_height;
       
       cline_y1 = bottom_line_mask;
       cline_y2 = DowngradeType< int16_t >( std::round (
         buff_h / 2.0 + wall_line_len
-          - basic_wall_line_len * ( hittable -> ceil_z - position_z - 0.5 )
+          - basic_wall_line_len * ( shape -> ceil_z - position_z - 0.5 )
       ) );
 
       if ( cline_y2 > top_line_mask )
@@ -169,10 +171,10 @@ Camera::Render
       }
 
       act_distance_correction = (
-        hittable -> ceil_z - position_z - hittable -> ceil_height  - 0.5
+        shape -> ceil_z - position_z - shape -> ceil_height  - 0.5
       ) * 2.0;
 
-      texture = & world . textures [ hittable -> ceil_bottom_index ];
+      texture = & world . textures [ shape -> ceil_bottom_index ];
       
       for ( v = cline_y1; v < cline_y2; ++v )
       {
@@ -196,12 +198,12 @@ Camera::Render
       //
       //  FLOOR TOP SIDE
       //
-      wall_line_len = basic_wall_line_len * hittable -> floor_height;
+      wall_line_len = basic_wall_line_len * shape -> floor_height;
       
       fline_y2 = top_line_mask;
       fline_y1 = DowngradeType< int16_t >( std::round (
         buff_h / 2.0 - wall_line_len 
-          + basic_wall_line_len * ( position_z + 0.5 - hittable -> floor_z )
+          + basic_wall_line_len * ( position_z + 0.5 - shape -> floor_z )
       ) );
 
       if ( fline_y1 < bottom_line_mask )
@@ -214,11 +216,11 @@ Camera::Render
       }
 
       act_distance_correction = (
-         position_z - hittable -> floor_z - hittable -> floor_height + 0.5
+         position_z - shape -> floor_z - shape -> floor_height + 0.5
       ) * 2.0;
 
       
-      texture = & world . textures [ hittable -> floor_top_index ];
+      texture = & world . textures [ shape -> floor_top_index ];
       
       for ( v = fline_y1; v < fline_y2; ++v )
       {
@@ -251,9 +253,8 @@ Camera::Render
         break;
       }
 
-      hittable = &world . hittables[
-        world . map[ map_x + map_y * world.map_width ]
-      ]; 
+      hittable = & world . map[ map_x + map_y * world.map_width ];
+      shape = &world . shapes [ hittable -> index ];
 
 
 
@@ -261,14 +262,15 @@ Camera::Render
       //
       //  CEIL WALL
       //
-      wall_line_len = basic_wall_line_len * hittable -> ceil_height;
+      wall_line_len = basic_wall_line_len * shape -> ceil_height;
 
-      unmusk_line_y = cline_y2;
-      cline_y1 = unmusk_line_y;
+      cline_y1 = cline_y2;
       cline_y2 = DowngradeType< int16_t >( std::round (
         buff_h / 2.0 + wall_line_len
-          - basic_wall_line_len * ( hittable -> ceil_z - position_z - 0.5 )
+          - basic_wall_line_len * ( shape -> ceil_z - position_z - 0.5 )
       ) );
+      
+      unmusk_line_y = cline_y2;
       
       
       if ( bottom_line_mask > cline_y1 )
@@ -286,7 +288,7 @@ Camera::Render
       }
 
 
-      texture = & world . textures [ hittable -> ceil_border_index ];
+      texture = & world . textures [ shape -> ceil_border_index ];
       
       texture_u = DowngradeType< int32_t >( local_hit_pos * texture -> width );
       
@@ -303,10 +305,11 @@ Camera::Render
 
       
       texture_step = texture -> height / wall_line_len;
-      
+     
       texture_pos = (
-        texture -> height - ( cline_y2 - cline_y1 ) * texture_step
+        texture -> height - ( unmusk_line_y - cline_y1 ) * texture_step
       ); 
+      if ( texture_pos < 0 )  texture_pos = 0;
 
     
 
@@ -331,12 +334,12 @@ Camera::Render
       //
       //  FLOOR WALL
       //
-      wall_line_len = basic_wall_line_len * hittable -> floor_height;
+      wall_line_len = basic_wall_line_len * shape -> floor_height;
 
       fline_y2 = fline_y1;
       fline_y1 = DowngradeType< int16_t >( std::round (
         buff_h / 2.0 - wall_line_len 
-          + basic_wall_line_len * ( position_z + 0.5 - hittable -> floor_z )
+          + basic_wall_line_len * ( position_z + 0.5 - shape -> floor_z )
       ) );
 
       unmusk_line_y = fline_y1;
@@ -356,7 +359,7 @@ Camera::Render
         top_line_mask = fline_y1;
       }
 
-      texture = & world . textures [ hittable -> floor_border_index ];
+      texture = & world . textures [ shape -> floor_border_index ];
 
       texture_u = DowngradeType< int32_t >(
         local_hit_pos * texture -> width

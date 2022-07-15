@@ -16,6 +16,20 @@ struct Texture
 
 struct Hittable
 {
+  enum class Type
+  {
+    Shape,
+    Portal
+  };
+ 
+
+  int32_t  index;
+  Type     m_type;
+};
+
+
+struct Shape
+{
   int32_t   floor_border_index;
   int32_t   floor_top_index;
   int32_t   ceil_border_index;
@@ -26,14 +40,22 @@ struct Hittable
   double    ceil_z;
 };
 
+struct Portal
+{
+  int32_t  pair_index;
+  double   floor_height;
+  double   floor_z;
+};
+
+
 struct World
 {
-  int32_t *   map;
+  Hittable *  map;
   int32_t     map_width;
   int32_t     map_height;
 
-  Hittable *  hittables;
-  int32_t     hittables_count;
+  Shape *     shapes;
+  int32_t     shapes_count;
 
   Texture *   textures;
   int16_t     textures_count;
