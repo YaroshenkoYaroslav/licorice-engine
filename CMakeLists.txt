@@ -45,7 +45,7 @@ add_library(Engine STATIC ${SOURCE_ENGINE})
 add_library(Extlibs STATIC ${SOURCE_EXTLIBS})
 
 add_executable(Executable example/main.cpp example/Game.cpp example/Player.cpp)
-#add_executable(Executable map_editor/main.cpp)
+#add_executable(Executable map_editor/map_editor.cpp)
 
 target_link_libraries(Executable Engine Extlibs
   -lSDL2 -lSDL2main -lSDL2_image)

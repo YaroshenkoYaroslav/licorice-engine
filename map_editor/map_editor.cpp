@@ -104,6 +104,8 @@ MapEditor::LoadMapEditorFromConfig
     const char *  pass
 )
 {
+  otf_pass = pass;
+
   inf.open( pass );
   inf >> m_json;
   inf.close();
@@ -121,16 +123,18 @@ MapEditor::LoadMapEditorFromConfig
     } );
   }
  
-  /*
-  for ( const LicEngine::Shape & shape : m_json[ "hittables" ] )
+  for ( const auto & shape_json : m_json[ "shapes" ] )
   {
-    shapes . push_back( shape );
-  }*/
+    shapes[ shape_json[ 0 ] ] = shape_json[ 1 ];
+  }
+  for ( const auto & portal_json : m_json[ "portals" ] )
+  {
+    portals[ portal_json[ 0 ] ] = portal_json[ 1 ];
+  }
   
-  /*
-  for ( const Label & label : m_json[ "labels" ] ) {
-    labels . push_back( label );
-  }*/
+  for ( const auto & label_json : m_json[ "labels" ] ) {
+    labels[ label_json[ 0 ] ] = label_json[ 1 ];
+  }
   
   map . resize( map_width * map_height );
   
@@ -438,6 +442,7 @@ MapEditor::RenderMapSettings
   
   
   if ( ImGui::Button( "Resize" ) )  ResizeMap();
+  ImGui::PopID();
 };
 
 
@@ -565,34 +570,92 @@ MapEditor::RenderConfigSettings
   
   if ( ImGui::Button( "Save" ) )
   {
-    if ( InitAndSaveMapConfig() )
+    if ( is_save_map_editor_data )  InitEditorMapConfig();
+    else                            InitGameMapConfig();
+
+    otf.open( otf_pass );
+    
+    if ( otf . is_open())
     {
+      otf << std::setw( 4 ) << m_json << std::endl;
+      otf.close();
       std::cerr <<  "LOG: Save map" << std::endl;
     }
-    else
+    else 
     {
       std::cerr <<  "LOG: Can't save map" << std::endl;
     }
   }
 }
 
-bool
-MapEditor::InitAndSaveMapConfig
+
+void
+MapEditor::InitEditorMapConfig
+(
+
+)
+{
+  m_json.clear(); 
+ 
+  m_json[ "player_x" ] = player_x;
+  m_json[ "player_y" ] = player_y;
+  m_json[ "player_angle" ] = player_angle;
+  
+  m_json[ "map_width" ] = map_width;
+  m_json[ "map_height" ] = map_height;
+  
+  for ( y = 0; y < map_height; ++y )
+  {
+    for ( x = 0; x < map_width; ++x )
+    {
+      m_json[ "map" ][ std::to_string( y ) ][ std::to_string( x ) ] = (
+        map[ x + y * map_width ]
+      );
+    }
+  }
+
+  
+  for ( auto it = textures . begin(); it != textures . end(); ++it )
+  {
+    m_json[ "textures" ] . push_back( it -> texture_pass );
+  }
+  
+
+  for ( auto & [ shape_id, shape ] : shapes )
+  {
+    m_json[ "shapes" ] . push_back( { shape_id, shape } );
+  }
+  
+  for ( auto & [ portal_id, portal ] : portals )
+  {
+    m_json[ "portals" ] . push_back( { portal_id, portal } );
+  }
+  
+  for ( auto & [ label_id, label ] : labels )
+  {
+    m_json[ "labels" ] . push_back( { label_id, label } );
+  }
+}
+
+void
+MapEditor::InitGameMapConfig
 (
 
 )
 {
   std::unordered_map< int32_t, int32_t >  labels_indexes;
-  std::vector< LicEngine::Shape >         shapes_vec;
 
 
 
-  
   y = 0;
-  for ( auto & [ label_id, label ] : labels )
+  for ( auto & [ shape_id, shape ] : shapes )
   {
-    labels_indexes [ label_id ] = y++;
-    shapes_vec . push_back ( shapes[ label_id ] );
+    labels_indexes [ shape_id ] = y++;
+  }
+  y = 0;
+  for ( auto & [ portal_id, portal ] : portals )
+  {
+    labels_indexes [ portal_id ] = y++;
   }
   
 
@@ -626,25 +689,15 @@ MapEditor::InitAndSaveMapConfig
   
 
   m_json[ "shapes_count" ] = shapes . size();
-  for ( const LicEngine::Shape & shape : shapes_vec )
+  for ( auto & [ shape_id, shape ] : shapes )
   {
     m_json[ "shapes" ] . push_back( shape );
   }
   
-
-
-
-  otf.open( otf_pass );
-  
-  if ( otf . is_open())
+  m_json[ "portals_count" ] = portals . size();
+  for ( auto & [ portal_id, portal ] : portals )
   {
-    otf << std::setw( 4 ) << m_json << std::endl;
-    otf.close();
-    return true;
-  }
-  else 
-  {
-    return false;
+    m_json[ "portals" ] . push_back( portal );
   }
 }
 
@@ -743,7 +796,7 @@ MapEditor::RenderLabelsSettings
       )
     )
     {
-      RenderLabelSettings( label );
+      RenderLabelSettings( label, label_id );
       
       ImGui::NewLine();
       
@@ -753,6 +806,7 @@ MapEditor::RenderLabelsSettings
       }
       else
       {
+        RenderPortalSettings( portals[ label_id ] );
       }
     
 
@@ -762,6 +816,7 @@ MapEditor::RenderLabelsSettings
       if ( ImGui::Button( "Delete" ) )
       {
         shapes . erase ( label_id );
+        portals . erase ( label_id );
         labels . erase ( label_id );
         ImGui::TreePop();
         break;
@@ -771,7 +826,15 @@ MapEditor::RenderLabelsSettings
       
       if ( ImGui::Button( "Copy" ) )
       {
-        labels[ new_label_id ] = {  "",  { 1.0, 1.0, 1.0 }  };
+        labels[ new_label_id ] = labels[ label_id ];
+        if ( labels[ new_label_id ] . hittable_type == 0 )
+        {
+          shapes[ new_label_id ] = shapes[ label_id ];
+        }
+        else
+        {
+          portals[ new_label_id ] = portals[ label_id ];
+        }
       }
       
       ImGui::TreePop();
@@ -793,15 +856,29 @@ MapEditor::RenderLabelsSettings
 void
 MapEditor::RenderLabelSettings
 (
-    Label & label
+    Label &  label,
+    int32_t  label_id
 )
 {
   ImGui::InputText( "Title", & label . title );
-  ImGui::SliderInt(
-    "Type", & label . hittable_type,
-    0, 1,
-    hittables_types_names[ label . hittable_type ]
-  );
+  if
+  (
+    ImGui::SliderInt(
+      "Type", & label . hittable_type,
+      0, 1,
+      hittables_types_names[ label . hittable_type ]
+    )
+  )
+  {
+    if ( label . hittable_type == 0 )
+    {
+      portals . erase ( label_id );
+    }
+    else
+    {
+      shapes . erase ( label_id );
+    }
+  }
   
   ImGui::ColorEdit3( "Color", label . color );
 }
@@ -813,14 +890,26 @@ MapEditor::RenderShapeSettings
     LicEngine::Shape & shape
 )
 {
-  ImGui::InputInt( "floor_border_index", & shape . floor_border_index );
-  ImGui::InputInt( "floor_top_index", & shape . floor_top_index );
-  ImGui::InputInt( "ceil_border_index", & shape . ceil_border_index );
-  ImGui::InputInt( "ceil_bottom_index", & shape . ceil_bottom_index );
+  ImGui::InputInt( "floor_border", & shape . floor_border );
+  ImGui::InputInt( "floor_top", & shape . floor_top );
+  ImGui::InputInt( "ceil_border", & shape . ceil_border );
+  ImGui::InputInt( "ceil_bottom", & shape . ceil_bottom );
   ImGui::InputDouble( "floor_height", & shape . floor_height );
   ImGui::InputDouble( "floor_z", & shape . floor_z );
   ImGui::InputDouble( "ceil_height", & shape . ceil_height );
   ImGui::InputDouble( "ceil_z", & shape . ceil_z );
+}
+
+void
+MapEditor::RenderPortalSettings
+(
+    LicEngine::Portal & portal
+)
+{
+  ImGui::InputInt( "target_x", & portal . target_x );
+  ImGui::InputInt( "target_y", & portal . target_y );
+  ImGui::InputDouble( "floor_z", & portal . floor_z );
+  ImGui::InputDouble( "ceil_z", & portal . ceil_z );
 }
 
 
@@ -938,8 +1027,9 @@ MapEditor::to_json
 )
 {
   j = nlohmann::json {
-    { "title",        label . title },
-    { "color",        label . color }
+    { "title",         label . title },
+    { "color",         label . color },
+    { "hittable_type", label . hittable_type }
   };
 }
 
@@ -950,8 +1040,9 @@ MapEditor::from_json
     MapEditor::Label &     label
 )
 {
-    j . at( "title" ) . get_to( label . title );
-    j . at( "color" ) . get_to( label . color );
+    j . at( "title" )         . get_to( label . title );
+    j . at( "color" )         . get_to( label . color );
+    j . at( "hittable_type" ) . get_to( label . hittable_type );
 }
 
 
@@ -964,14 +1055,14 @@ LicEngine::to_json
 )
 {
   j = nlohmann::json {
-    { "floor_border_index", s . floor_border_index }, 
-    { "floor_top_index",    s . floor_top_index    },
-    { "ceil_border_index",  s . ceil_border_index  },
-    { "ceil_bottom_index",  s . ceil_bottom_index  },
-    { "floor_height",       s . floor_height       },
-    { "floor_z",            s . floor_z            },
-    { "ceil_height",        s . ceil_height        },
-    { "ceil_z",             s . ceil_z             },
+    { "floor_border",  s . floor_border }, 
+    { "floor_top",     s . floor_top    },
+    { "ceil_border",   s . ceil_border  },
+    { "ceil_bottom",   s . ceil_bottom  },
+    { "floor_height",  s . floor_height },
+    { "floor_z",       s . floor_z      },
+    { "ceil_height",   s . ceil_height  },
+    { "ceil_z",        s . ceil_z       },
   };
 }
 
@@ -982,12 +1073,43 @@ LicEngine::from_json
     LicEngine::Shape &     s
 )
 {
-    j . at( "floor_border_index" ) . get_to( s . floor_border_index );
-    j . at( "floor_top_index" )    . get_to( s . floor_top_index );
-    j . at( "ceil_border_index" )  . get_to( s . ceil_border_index );
-    j . at( "ceil_bottom_index" )  . get_to( s . ceil_bottom_index );
-    j . at( "floor_height" )       . get_to( s . floor_height );
-    j . at( "floor_z" )            . get_to( s . floor_z );
-    j . at( "ceil_height" )        . get_to( s . ceil_height );
-    j . at( "ceil_z" )             . get_to( s . ceil_z );
+  j . at( "floor_border" ) . get_to( s . floor_border );
+  j . at( "floor_top" )    . get_to( s . floor_top );
+  j . at( "ceil_border" )  . get_to( s . ceil_border );
+  j . at( "ceil_bottom" )  . get_to( s . ceil_bottom );
+  j . at( "floor_height" ) . get_to( s . floor_height );
+  j . at( "floor_z" )      . get_to( s . floor_z );
+  j . at( "ceil_height" )  . get_to( s . ceil_height );
+  j . at( "ceil_z" )       . get_to( s . ceil_z );
+}
+
+
+void 
+LicEngine::to_json
+(
+    nlohmann::json &           j, 
+    const LicEngine::Portal &  p
+)
+{
+  j = nlohmann::json {
+    { "target_x", p . target_x },
+    { "target_y", p . target_y },
+    { "floor_z",  p . floor_z },
+    { "ceil_z",   p . ceil_z  },
+  };
+}
+
+
+
+void
+LicEngine::from_json
+(
+    const nlohmann::json & j,
+    LicEngine::Portal &    p
+)
+{
+  j . at( "target_x" ) . get_to( p . target_x );
+  j . at( "target_y" ) . get_to( p . target_y );
+  j . at( "floor_z" ) . get_to( p . floor_z );
+  j . at( "ceil_z" )  . get_to( p . ceil_z );
 }

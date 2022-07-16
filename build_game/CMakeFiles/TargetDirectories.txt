@@ -1,5 +1,0 @@
-/home/buwnertys/programming/licorice-engine/build_game/CMakeFiles/Engine.dir
-/home/buwnertys/programming/licorice-engine/build_game/CMakeFiles/Extlibs.dir
-/home/buwnertys/programming/licorice-engine/build_game/CMakeFiles/Executable.dir
-/home/buwnertys/programming/licorice-engine/build_game/CMakeFiles/edit_cache.dir
-/home/buwnertys/programming/licorice-engine/build_game/CMakeFiles/rebuild_cache.dir

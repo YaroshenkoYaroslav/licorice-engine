@@ -41,6 +41,23 @@ from_json
 );
 
 
+void 
+to_json
+(
+    nlohmann::json &  j, 
+    const Portal &    p
+);
+
+
+
+void
+from_json
+(
+    const nlohmann::json & j,
+    Portal &               p
+);
+
+
 }
 
 
@@ -67,7 +84,6 @@ struct Label
   std::string  title;
   float        color  [ 3 ];
   
-  int32_t      hittable_id;
   int32_t      hittable_type;
 };
 
@@ -182,8 +198,14 @@ RenderConfigSettings
 
 );
 
-bool
-InitAndSaveMapConfig
+void
+InitEditorMapConfig
+(
+
+);
+
+void
+InitGameMapConfig
 (
 
 );
@@ -213,13 +235,20 @@ RenderLabelsSettings
 void
 RenderLabelSettings
 (
-    Label & label
+    Label &  label,
+    int32_t  label_id
 );
 
 void
 RenderShapeSettings
 (
     LicEngine::Shape & shape
+);
+
+void
+RenderPortalSettings
+(
+    LicEngine::Portal & portal
 );
 
 
@@ -387,9 +416,10 @@ nlohmann::json  m_json;
 
 
 
-std::unordered_map< int32_t, LicEngine::Shape >  shapes;
-std::unordered_map< int32_t, Label >             labels;
-std::list< Texture >                             textures;
+std::unordered_map< int32_t, LicEngine::Shape >   shapes;
+std::unordered_map< int32_t, LicEngine::Portal >  portals;
+std::unordered_map< int32_t, Label >              labels;
+std::list< Texture >                              textures;
 
 
 

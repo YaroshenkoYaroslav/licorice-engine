@@ -18,8 +18,8 @@ struct Hittable
 {
   enum class Type
   {
-    Shape,
-    Portal
+    Shape = 0,
+    Portal = 1
   };
  
 
@@ -30,10 +30,11 @@ struct Hittable
 
 struct Shape
 {
-  int32_t   floor_border_index;
-  int32_t   floor_top_index;
-  int32_t   ceil_border_index;
-  int32_t   ceil_bottom_index;
+  int32_t   floor_border;
+  int32_t   floor_top;
+  int32_t   ceil_border;
+  int32_t   ceil_bottom;
+
   double    floor_height;
   double    floor_z;
   double    ceil_height;
@@ -42,9 +43,10 @@ struct Shape
 
 struct Portal
 {
-  int32_t  pair_index;
-  double   floor_height;
+  int32_t  target_x;
+  int32_t  target_y;
   double   floor_z;
+  double   ceil_z;
 };
 
 
@@ -56,6 +58,9 @@ struct World
 
   Shape *     shapes;
   int32_t     shapes_count;
+  
+  Portal *    portals;
+  int32_t     portals_count;
 
   Texture *   textures;
   int16_t     textures_count;

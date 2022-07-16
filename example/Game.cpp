@@ -125,11 +125,10 @@ Game::LoadSceneFromConfig
     y_json = m_json[ "map" ][ std::to_string( y ) ];
     for ( x = 0; x < m_world . map_width; ++x )
     {
-      x_json = y_json[ td::to_string( x ) ];
+      x_json = y_json[ std::to_string( x ) ];
 
       m_world . map[ x + y * m_world . map_width ] = {
-        x_json[ "index" ],
-        x_json[ "type" ]
+        x_json[ 0 ], x_json[ 1 ]
       };
     }
   }
@@ -155,21 +154,29 @@ Game::LoadSceneFromConfig
   for ( const LicEngine::Shape & c_shape : m_json[ "shapes" ] ) {
     m_world . shapes[ i++ ] = c_shape;
   }
+  
+
+  i = 0;
+  m_world . portals_count = m_json[ "portals_count" ];
+  m_world . portals = new LicEngine::Portal[ m_world . portals_count ];
+
+  for ( const LicEngine::Portal & c_portal : m_json[ "portals" ] ) {
+    m_world . portals[ i++ ] = c_portal;
+  }
 
 
 
 
   m_player . o_world = & m_world;
-  m_player . moving_speed = 0.1;
+  m_player . moving_speed = 0.3;
   m_player . rotating_speed = 0.005;
   m_player . step_height = player_step_height;
   m_player . m_camera . position_x = m_json[ "player_x" ];
   m_player . m_camera . position_y = m_json[ "player_y" ];
+  x = static_cast< int32_t >( m_player . m_camera . position_x );
+  y = static_cast< int32_t >( m_player . m_camera . position_y );
 
-  i = m_world . map[ static_cast< int32_t >(
-    m_player . m_camera . position_x 
-      + m_player . m_camera . position_y * m_world . map_width
-  ) ];
+  i = m_world . map[ x +  y * m_world . map_width ] . index;
 
   m_player . m_camera . position_z = (
     m_world . shapes[ i ] . floor_height

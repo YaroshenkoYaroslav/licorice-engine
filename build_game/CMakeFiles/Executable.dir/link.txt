@@ -1,1 +1,0 @@
-/usr/bin/c++ -rdynamic CMakeFiles/Executable.dir/example/main.cpp.o CMakeFiles/Executable.dir/example/Game.cpp.o CMakeFiles/Executable.dir/example/Player.cpp.o -o Executable  libEngine.a libExtlibs.a -lSDL2 -lSDL2main -lSDL2_image 
