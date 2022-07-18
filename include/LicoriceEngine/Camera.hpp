@@ -1,10 +1,12 @@
 #ifndef LICORICE_ENGINE_CAMERA_HPP
 #define LICORICE_ENGINE_CAMERA_HPP
 
-#include <LicoriceEngine/World.hpp>
 #include <cmath>
 #include <limits>
 #include <iostream>
+
+#include <LicoriceEngine/World.hpp>
+#include <LicoriceEngine/System.hpp>
 
 namespace LicEngine
 {
@@ -29,17 +31,6 @@ class Camera
   );
 
 
- private:
-  
-  template < class U, class T >
-  inline
-  U
-  DowngradeType
-  (
-      T x
-  );
-
-
  public:
 
   double  position_x;
@@ -52,10 +43,6 @@ class Camera
   double  viewing_plane_x;
   double  viewing_plane_y;
 };
-
-
-#include <LicoriceEngine/Camera.ini>
-
 
 }
 

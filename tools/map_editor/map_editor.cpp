@@ -112,9 +112,12 @@ MapEditor::LoadMapEditorFromConfig
   
   map_width    = m_json[ "map_width"    ];
   map_height   = m_json[ "map_height"   ];
-  player_x     = m_json[ "player_x"     ];
-  player_y     = m_json[ "player_y"     ];
-  player_angle = m_json[ "player_angle" ];
+  camera_x     = m_json[ "camera_x"     ];
+  camera_y     = m_json[ "camera_y"     ];
+  camera_dir_x = m_json[ "camera_dir_x" ];
+  camera_dir_y = m_json[ "camera_dir_y" ];
+  camera_view_plane_x = m_json[ "camera_view_plane_x" ];
+  camera_view_plane_y = m_json[ "camera_view_plane_y" ];
 
   for ( const std::string & texture_pass : m_json[ "textures" ] ) {
     textures . push_back( {
@@ -162,9 +165,12 @@ MapEditor::CreateMapEditorFromInput
   
   map . resize( map_width * map_height );
 
-  player_angle = 0;
-  player_x = 0;
-  player_y = 0;
+  camera_dir_x = -1.0;
+  camera_dir_y = 0;
+  camera_view_plane_x = 0;
+  camera_view_plane_y = 0.66;
+  camera_x = 0;
+  camera_y = 0;
 
   labels[ 0 ] = {  "New label",  { 1.0, 1.0, 1.0 }  };
 }
@@ -188,8 +194,8 @@ MapEditor::InitMapEditorScene
   selected_cell_y = 0;
   selected_cell_index = 0;
 
-  camera_x = 0;
-  camera_y = 0;
+  scene_x = 0;
+  scene_y = 0;
   
   map_moving_x = 0;
   map_moving_y = 0;
@@ -215,8 +221,8 @@ MapEditor::Update
 
 )
 {
-  camera_x += ( horizontal_dir[ 0 ] + horizontal_dir[ 1 ] ) * 0.5;
-  camera_y += ( vertical_dir[ 0 ] + vertical_dir[ 1 ] ) * 0.5;
+  scene_x += ( horizontal_dir[ 0 ] + horizontal_dir[ 1 ] ) * 0.5;
+  scene_y += ( vertical_dir[ 0 ] + vertical_dir[ 1 ] ) * 0.5;
 }
 
 
@@ -302,8 +308,8 @@ MapEditor::SelectCellByMousePosition
 
 )
 {
-  map_pos_x = std::floor( event . button . x / scale + camera_x );
-  map_pos_y = std::floor( event . button . y / scale + camera_y );
+  map_pos_x = std::floor( event . button . x / scale + scene_x );
+  map_pos_y = std::floor( event . button . y / scale + scene_y );
  
   if
   ( 
@@ -336,11 +342,11 @@ MapEditor::RenderMap
 
   for ( y = 0; y < window_height; ++y )
   {
-    map_pos_y = std::floor( y / scale + camera_y );
+    map_pos_y = std::floor( y / scale + scene_y );
 
     for ( x = 0; x < window_width; ++x )
     {
-      map_pos_x = std::floor( x / scale + camera_x );
+      map_pos_x = std::floor( x / scale + scene_x );
       
       if 
       (
@@ -359,11 +365,11 @@ MapEditor::RenderMap
           last_map_pos_y = map_pos_y;
         }
 
-        *screen_pixels = last_map_pixel;
+        *( screen_pixels ) = last_map_pixel;
       }
       else
       {
-        *screen_pixels = 0;
+        *( screen_pixels ) = 0;
       }
       ++screen_pixels;
     }
@@ -409,11 +415,14 @@ MapEditor::RenderSceneSetttings
 
 )
 {
-  ImGui::InputDouble( "player_x", & player_x );
-  ImGui::InputDouble( "player_y", & player_y );
-  ImGui::InputDouble( "player_angle", & player_angle );
   ImGui::InputDouble( "camera_x", & camera_x );
   ImGui::InputDouble( "camera_y", & camera_y );
+  ImGui::InputDouble( "camera_dir_x", & camera_dir_x );
+  ImGui::InputDouble( "camera_dir_y", & camera_dir_y );
+  ImGui::InputDouble( "camera_view_plane_x", & camera_view_plane_x );
+  ImGui::InputDouble( "camera_view_plane_y", & camera_view_plane_y );
+  ImGui::InputDouble( "scene_x", & scene_x );
+  ImGui::InputDouble( "scene_y", & scene_y );
   ImGui::InputDouble( "scale", & scale );
 }
 
@@ -540,15 +549,15 @@ MapEditor::ResizeMap
 
 
 
-  new_map.resize( new_map_width * new_map_height ); 
-  
-  for ( y = 0; y < map_height; ++y )
+  for ( y = 0; y < new_map_height; ++y )
   {
-    for ( x = 0; x < map_width; ++x )
+    for ( x = 0; x < new_map_width; ++x )
     {
       new_map[ x + y * new_map_width ] = map[ x + y * map_width ];
     }
   }
+  
+  new_map.resize( new_map_width * new_map_height ); 
 
   map = new_map;
   
@@ -597,9 +606,12 @@ MapEditor::InitEditorMapConfig
 {
   m_json.clear(); 
  
-  m_json[ "player_x" ] = player_x;
-  m_json[ "player_y" ] = player_y;
-  m_json[ "player_angle" ] = player_angle;
+  m_json[ "camera_x" ] = camera_x;
+  m_json[ "camera_y" ] = camera_y;
+  m_json[ "camera_dir_x" ] = camera_dir_x;
+  m_json[ "camera_dir_y" ] = camera_dir_y;
+  m_json[ "camera_view_plane_x" ] = camera_view_plane_x;
+  m_json[ "camera_view_plane_y" ] = camera_view_plane_y;
   
   m_json[ "map_width" ] = map_width;
   m_json[ "map_height" ] = map_height;
@@ -662,9 +674,12 @@ MapEditor::InitGameMapConfig
 
   m_json.clear(); 
  
-  m_json[ "player_x" ] = player_x;
-  m_json[ "player_y" ] = player_y;
-  m_json[ "player_angle" ] = player_angle;
+  m_json[ "camera_x" ] = camera_x;
+  m_json[ "camera_y" ] = camera_y;
+  m_json[ "camera_dir_x" ] = camera_dir_x;
+  m_json[ "camera_dir_y" ] = camera_dir_y;
+  m_json[ "camera_view_plane_x" ] = camera_view_plane_x;
+  m_json[ "camera_view_plane_y" ] = camera_view_plane_y;
   
   m_json[ "map_width" ] = map_width;
   m_json[ "map_height" ] = map_height;
@@ -908,8 +923,6 @@ MapEditor::RenderPortalSettings
 {
   ImGui::InputInt( "target_x", & portal . target_x );
   ImGui::InputInt( "target_y", & portal . target_y );
-  ImGui::InputDouble( "floor_z", & portal . floor_z );
-  ImGui::InputDouble( "ceil_z", & portal . ceil_z );
 }
 
 
@@ -1094,8 +1107,6 @@ LicEngine::to_json
   j = nlohmann::json {
     { "target_x", p . target_x },
     { "target_y", p . target_y },
-    { "floor_z",  p . floor_z },
-    { "ceil_z",   p . ceil_z  },
   };
 }
 
@@ -1110,6 +1121,4 @@ LicEngine::from_json
 {
   j . at( "target_x" ) . get_to( p . target_x );
   j . at( "target_y" ) . get_to( p . target_y );
-  j . at( "floor_z" ) . get_to( p . floor_z );
-  j . at( "ceil_z" )  . get_to( p . ceil_z );
 }

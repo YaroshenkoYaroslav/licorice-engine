@@ -1,26 +1,30 @@
 #include "Game.hpp"
-
 #include "LicoriceEngineJsonHelper.cpp"
-
-
 
 
 Game::Game
 (
+    const char * const  config_pass 
 )
 {
-  Init();
+  Init( config_pass );
   while ( quit == 0 )
   {
     UpdateEvents();
-    Update();
+    UpdateScene();
     Render();
+    UpdateTimer();
+
+#ifdef SHOW_FPS
+    Log();
+#endif
   }
 }
 
 
 Game::~Game
 (
+
 )
 {
   int  i;
@@ -46,10 +50,11 @@ Game::~Game
 void
 Game::Init
 (
+    const char * const  config_pass
 )
 {
   InitSDL();
-  quit = ! LoadSceneFromConfig();
+  InitScene( config_pass );
   renderer_rect = { 0, 0, window_width, window_height };
 }
 
@@ -57,6 +62,7 @@ Game::Init
 void
 Game::InitSDL
 (
+
 )
 {
   SDL_Init(SDL_INIT_VIDEO);
@@ -84,34 +90,73 @@ Game::InitSDL
 }
 
 
+void
+Game::InitScene
+(
+    const char * const  config_pass
+)
+{
+  quit = ! LoadSceneFromConfig( config_pass );
+  
+
+  m_player . o_world = & m_world;
+  m_player . m_rigidbody . o_world = & m_world;
+  
+  m_player . moving_speed = 5;
+  m_player . rotating_speed = 0.15;
+  
+  m_player . step_height = 0.25;
+  m_player . collision_radius = 0.05;
+  
+  m_player . m_rigidbody . mass = 0.1;
+  m_player . m_rigidbody . gravity = 9.8;
+}
+
+
 bool
 Game::LoadSceneFromConfig
 (
+    const char * const  config_pass
 )
 {
   nlohmann::json          m_json;
-  nlohmann::basic_json<>  x_json;
-  nlohmann::basic_json<>  y_json;
   std::ifstream           inf;
-  LicEngine::Texture      new_shape_texture;
-  int32_t                 x;
-  int32_t                 y;
-  int32_t                 i;
-
-
-
 
 
   inf.open( config_pass );
 
   if ( ! inf . is_open() )
   {
+    std::cerr << "Can't find config: \"" << config_pass << "\"" << std::endl;
     return false;
   }
   
   inf >> m_json;
   inf . close();
   
+  LoadMapFromConfig( m_json ); 
+    
+  LoadHittablesFromConfig( m_json );
+  
+  LoadCameraFromConfig( m_json );
+  
+
+  return LoadTexturesFromConfig( m_json );
+}
+  
+void
+Game::LoadMapFromConfig
+(
+    nlohmann::json &  m_json  
+)
+{
+  nlohmann::basic_json<>  x_json;
+  nlohmann::basic_json<>  y_json;
+  int32_t                 x;
+  int32_t                 y;
+  
+
+
   
   m_world . map_width = m_json[ "map_width" ];
   m_world . map_height = m_json[ "map_height" ];
@@ -132,9 +177,21 @@ Game::LoadSceneFromConfig
       };
     }
   }
+}
 
 
-  i = 0;
+bool
+Game::LoadTexturesFromConfig
+(
+    nlohmann::json &  m_json  
+)
+{
+  LicEngine::Texture  new_shape_texture;
+  int                 index;
+
+
+
+  index = 0;
   m_world . textures_count = m_json[ "textures_count" ];
   m_world . textures = new LicEngine::Texture[ m_world . textures_count ];
 
@@ -143,69 +200,92 @@ Game::LoadSceneFromConfig
     
     if ( new_shape_texture . pixels == nullptr )  return false;
     
-    m_world . textures[ i++ ] = new_shape_texture;
+    m_world . textures[ index++ ] = new_shape_texture;
   }
- 
 
-  i = 0;
+  return true;
+}
+
+
+void
+Game::LoadHittablesFromConfig
+(
+    nlohmann::json &  m_json  
+)
+{
+  int  index;
+  
+
+
+
+  index = 0;
   m_world . shapes_count = m_json[ "shapes_count" ];
   m_world . shapes = new LicEngine::Shape[ m_world . shapes_count ];
-
   for ( const LicEngine::Shape & c_shape : m_json[ "shapes" ] ) {
-    m_world . shapes[ i++ ] = c_shape;
+    m_world . shapes[ index++ ] = c_shape;
   }
   
 
-  i = 0;
+  index = 0;
   m_world . portals_count = m_json[ "portals_count" ];
   m_world . portals = new LicEngine::Portal[ m_world . portals_count ];
 
   for ( const LicEngine::Portal & c_portal : m_json[ "portals" ] ) {
-    m_world . portals[ i++ ] = c_portal;
+    m_world . portals[ index++ ] = c_portal;
   }
+}
+  
+void
+Game::LoadCameraFromConfig
+(
+    nlohmann::json &  m_json  
+)
+{
+  LicEngine::Shape *     shape;
+  LicEngine::Hittable *  hittable;
+  int                    floor_position_x;
+  int                    floor_position_y;
 
 
 
 
-  m_player . o_world = & m_world;
-  m_player . moving_speed = 0.3;
-  m_player . rotating_speed = 0.005;
-  m_player . step_height = player_step_height;
-  m_player . m_camera . position_x = m_json[ "player_x" ];
-  m_player . m_camera . position_y = m_json[ "player_y" ];
-  x = static_cast< int32_t >( m_player . m_camera . position_x );
-  y = static_cast< int32_t >( m_player . m_camera . position_y );
+  m_player . m_camera . position_x = m_json[ "camera_x" ];
+  m_player . m_camera . position_y = m_json[ "camera_y" ];
+  
 
-  i = m_world . map[ x +  y * m_world . map_width ] . index;
+  floor_position_x = static_cast< int32_t >( m_player . m_camera . position_x );
+  floor_position_y = static_cast< int32_t >( m_player . m_camera . position_y );
 
-  m_player . m_camera . position_z = (
-    m_world . shapes[ i ] . floor_height
-      + m_world . shapes[ i ] . floor_z
-  );
+  hittable = & m_world . map[
+    floor_position_y * m_world . map_width + floor_position_x
+  ];
+  shape = & m_world . shapes[ hittable -> index ];
+
+  m_player . m_camera . position_z = shape -> floor_height + shape -> floor_z;
  
-  m_player . m_camera . direction_x = -1;
-  m_player . m_camera . direction_y = 0;
+  m_player . m_camera . direction_x = m_json[ "camera_dir_x" ];;
+  m_player . m_camera . direction_y = m_json[ "camera_dir_y" ];;
   
-  m_player . m_camera . viewing_plane_x  = 0;
-  m_player . m_camera . viewing_plane_y  = 0.66;
-  
-
-  return true;
+  m_player . m_camera . viewing_plane_x  = m_json[ "camera_view_plane_x" ];;
+  m_player . m_camera . viewing_plane_y  = m_json[ "camera_view_plane_y" ];;
 }
   
 
 
 
+
 void
-Game::Update
+Game::UpdateScene
 (
+
 )
 {
-  m_player . Rotate( mouse_move_dir );
+  m_player . Rotate( elapsed * mouse_move_dir );
   m_player . Move(
-    keys[ 0 ] + keys[ 1 ],
-    keys[ 2 ] + keys[ 3 ]
+    elapsed * ( keys[ 0 ] + keys[ 1 ] ),
+    elapsed * ( keys[ 2 ] + keys[ 3 ] )
   );
+  m_player . m_rigidbody . Update( elapsed );
 }
 
 
@@ -214,6 +294,7 @@ Game::Update
 void
 Game::UpdateEvents
 (
+
 )
 {
   mouse_move_dir = 0;
@@ -258,10 +339,11 @@ Game::UpdateEvents
 void
 Game::Render
 (
+
 )
 {
   SDL_LockTexture( renderer_sdl_texture, NULL, &pixels, &pixels_pitch );
-  
+ 
   m_player . m_camera . Render(
     reinterpret_cast< Uint32 * >( pixels ), 
     window_width, 
@@ -274,7 +356,43 @@ Game::Render
   SDL_RenderCopy( renderer, renderer_sdl_texture, NULL, & renderer_rect );
   SDL_RenderPresent( renderer );
 }
+  
+
+
+
+
+inline
+void 
+Game::UpdateTimer
+(
+
+)
+{
+  elapsed = static_cast< std::chrono::duration< double > >(
+    std::chrono::high_resolution_clock::now() - m_clock
+  ) . count();
+
+  m_clock = std::chrono::system_clock::now();
+}
+  
+
+
+
+
+inline
+void 
+Game::Log
+(
+
+)
+{
+  std::cout
+    << "FPS: "
+    << static_cast< int32_t >( 1.0 / elapsed ) 
+    << std::endl;
+}
  
+
 
 
 

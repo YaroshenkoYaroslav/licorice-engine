@@ -35,8 +35,6 @@ from_json
 {
   j . at( "target_y" ) . get_to( p . target_y );
   j . at( "target_x" ) . get_to( p . target_x );
-  j . at( "floor_z" )  . get_to( p . floor_z );
-  j . at( "ceil_z" )   . get_to( p . ceil_z );
 }
 
 

@@ -9,8 +9,8 @@ namespace LicEngine
 struct Texture
 {
   Uint32 *  pixels = nullptr;
-  int       width;
-  int       height;
+  int32_t   width;
+  int32_t   height;
 };
 
 
@@ -45,8 +45,6 @@ struct Portal
 {
   int32_t  target_x;
   int32_t  target_y;
-  double   floor_z;
-  double   ceil_z;
 };
 
 
@@ -63,7 +61,7 @@ struct World
   int32_t     portals_count;
 
   Texture *   textures;
-  int16_t     textures_count;
+  int32_t     textures_count;
 };
 
 }

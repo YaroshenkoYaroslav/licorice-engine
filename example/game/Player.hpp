@@ -5,12 +5,14 @@
 #include <LicoriceEngine/Camera.hpp>
 #include <LicoriceEngine/World.hpp>
 
-
+#include "Rigidbody.hpp"
 
 
 class Player
 {
  public:
+
+  Player();
 
   void
   Rotate
@@ -21,18 +23,23 @@ class Player
   void
   Move
   (
-      double  vertical_dor,
-      double  hotizontal_dor
+      double  vertical_dir,
+      double  hotizontal_dir
   );
+
 
  public:
 
   LicEngine::Camera   m_camera;
-  LicEngine::World *  o_world;
+  Rigidbody           m_rigidbody;
 
   double              moving_speed;
   double              rotating_speed;
+
+  double              collision_radius;
   double              step_height;
+  
+  LicEngine::World *  o_world;
 };
 
 

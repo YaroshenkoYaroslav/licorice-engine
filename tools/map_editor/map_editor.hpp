@@ -368,11 +368,14 @@ int32_t   last_map_pos_y;
 int32_t   new_cell_label_id;
 int32_t   new_label_id;
 
-double    player_angle;
+double    camera_dir_x;
+double    camera_dir_y;
+double    camera_view_plane_x;
+double    camera_view_plane_y;
 double    scale;
 
-double    player_x;
-double    player_y;
+double    scene_x;
+double    scene_y;
 
 double    camera_x;
 double    camera_y;

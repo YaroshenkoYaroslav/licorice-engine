@@ -2,7 +2,6 @@
 
 namespace LicEngine
 {
-
   
 void
 Camera::Render
@@ -23,7 +22,9 @@ Camera::Render
   
   int16_t   bottom_line_mask;
   int16_t   top_line_mask;
+  
   int16_t   unmusk_line_y;
+  
   int16_t   cline_y1;
   int16_t   cline_y2;
   int16_t   fline_y1;
@@ -67,6 +68,9 @@ Camera::Render
   double    weight;
   double    current_hit_pos_x;
   double    current_hit_pos_y;
+  
+  double    basic_buff_distance  [ buff_h ];
+
 
 
   const Hittable *  hittable;
@@ -76,6 +80,13 @@ Camera::Render
 
 
 
+  for ( v = 0; v < buff_h; ++v )
+  {
+    basic_buff_distance[ v ] = buff_h / ( buff_h - 2.0 * v );
+  }
+
+
+  
   for ( u = 0; u < buff_w; ++u )
   {
     camera_x = 2 * u / static_cast< double >( buff_w ) - 1.0;
@@ -117,7 +128,7 @@ Camera::Render
     bottom_line_mask = 0;
       
     hittable = & world . map[ map_x + map_y * world.map_width ];
-    shape = &world . shapes [ hittable -> index ];
+    shape = & world . shapes [ hittable -> index ];
 
     ray_z = position_z;
 
@@ -180,11 +191,12 @@ Camera::Render
       
       for ( v = cline_y1; v < cline_y2; ++v )
       {
-        current_hit_distance = buff_h / ( buff_h - 2.0 * v );
-        current_hit_distance *= act_distance_correction;
+        current_hit_distance = (
+          basic_buff_distance[ v ] * act_distance_correction
+        );
         weight = current_hit_distance / hit_distance;
-        current_hit_pos_x = weight * hit_pos_x + ( 1.0 - weight ) * position_x;
-        current_hit_pos_y = weight * hit_pos_y + ( 1.0 - weight ) * position_y;
+        current_hit_pos_x = weight * ( hit_pos_x - position_x) + position_x;
+        current_hit_pos_y = weight * ( hit_pos_y - position_y) + position_y;
         current_hit_pos_x -= static_cast< int64_t >( current_hit_pos_x );
         current_hit_pos_y -= static_cast< int64_t >( current_hit_pos_y );
 
@@ -193,7 +205,7 @@ Camera::Render
 
         color = texture -> pixels[ texture -> width * texture_v + texture_u ];
 
-        *( buffer + u + v * buff_w ) = color;
+        *( buff_w * v + u + buffer ) = color;
       }
 
       
@@ -226,11 +238,12 @@ Camera::Render
       
       for ( v = fline_y1; v < fline_y2; ++v )
       {
-        current_hit_distance = buff_h / ( 2.0 * v - buff_h );
-        current_hit_distance *= act_distance_correction;
+        current_hit_distance = (
+          -basic_buff_distance[ v ] * act_distance_correction
+        );
         weight = current_hit_distance / hit_distance;
-        current_hit_pos_x = weight * hit_pos_x + ( 1.0 - weight ) * position_x;
-        current_hit_pos_y = weight * hit_pos_y + ( 1.0 - weight ) * position_y;
+        current_hit_pos_x = weight * ( hit_pos_x - position_x) + position_x;
+        current_hit_pos_y = weight * ( hit_pos_y - position_y) + position_y;
         current_hit_pos_x -= static_cast< int64_t >( current_hit_pos_x );
         current_hit_pos_y -= static_cast< int64_t >( current_hit_pos_y );
 
@@ -239,7 +252,7 @@ Camera::Render
 
         color = texture -> pixels[ texture -> width * texture_v + texture_u ];
 
-        *( buffer + u + v * buff_w ) = color;
+        *( buff_w * v + u + buffer ) = color;
       }
       
 
@@ -264,12 +277,12 @@ Camera::Render
         map_x = world . portals[ hittable -> index ] . target_x;
         map_y = world . portals[ hittable -> index ] . target_y;
         hittable = & world . map[ map_x + map_y * world.map_width ];
-        shape = &world . shapes [ hittable -> index ];
+        shape = & world . shapes [ hittable -> index ];
         ray_z = shape -> floor_z + shape -> floor_height;
       }
       else
       {
-        shape = &world . shapes [ hittable -> index ];
+        shape = & world . shapes [ hittable -> index ];
       }
 
 
@@ -338,7 +351,7 @@ Camera::Render
 
         if ( side == 1 )  color = ( color >> 1 ) & 0x7F7F7F7Fu;
 
-        *( buffer + u + v * buff_w ) = color;
+        *( buff_w * v + u + buffer ) = color;
       }
       
     
@@ -397,7 +410,7 @@ Camera::Render
 
       texture_pos = ( fline_y1 - unmusk_line_y ) * texture_step;
 
-     
+           
       for ( v = fline_y1; v < fline_y2; ++v )
       {
         texture_v = static_cast< int32_t >( texture_pos );
@@ -407,7 +420,7 @@ Camera::Render
 
         if ( side == 1 )  color = ( color >> 1 ) & 0x7F7F7F7Fu;
 
-        *( buffer + u + v * buff_w ) = color;
+        *( buff_w * v + u + buffer ) = color;
       }
     }
   }
