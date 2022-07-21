@@ -6,17 +6,20 @@ namespace LicEngine
 void
 Camera::Render
 (
-    Uint32 * const  buffer,
-    int16_t         buff_w,
-    int16_t         buff_h, 
-    const World &   world
+    Color::Uint32 * const  buffer,
+    int16_t                buff_w,
+    int16_t                buff_h, 
+    const World &          world
 )
+const
 {
   int8_t    step_x;
   int8_t    step_y;
   
+  uint8_t   entering_portals_count;
+
   int8_t    side;
-  
+ 
   int16_t   u;
   int16_t   v;
   
@@ -36,12 +39,12 @@ Camera::Render
   int32_t   map_x;
   int32_t   map_y;
 
-  Uint32    color;
-
   double    basic_wall_line_len;
   double    wall_line_len;
   
   double    camera_x;
+
+  double    portal_z;
   
   double    ray_dir_x;
   double    ray_dir_y;
@@ -69,14 +72,19 @@ Camera::Render
   double    current_hit_pos_x;
   double    current_hit_pos_y;
   
+  double    current_light;
+
   double    basic_buff_distance  [ buff_h ];
 
+  
+  Color::Uint32  color;
 
 
   const Hittable *  hittable;
   const Texture  *  texture;
   const Shape *     shape;
-  
+
+
 
 
 
@@ -84,7 +92,6 @@ Camera::Render
   {
     basic_buff_distance[ v ] = buff_h / ( buff_h - 2.0 * v );
   }
-
 
   
   for ( u = 0; u < buff_w; ++u )
@@ -124,13 +131,19 @@ Camera::Render
     }
 
     
-    top_line_mask = buff_h;
-    bottom_line_mask = 0;
-      
     hittable = & world . map[ map_x + map_y * world.map_width ];
     shape = & world . shapes [ hittable -> index ];
 
+  
+    entering_portals_count = 0;
     ray_z = position_z;
+
+    
+    top_line_mask = buff_h;
+    bottom_line_mask = 0;
+      
+    current_light = world . light_map[ world . map_width * map_y + map_x ];
+      
 
     while ( true )
     {
@@ -148,7 +161,6 @@ Camera::Render
         side = 1;
       }
       
-
       //Caclualte a distance
       if ( side == 0 )  hit_distance = side_dist_x - delta_dist_x;
       else              hit_distance = side_dist_y - delta_dist_y;
@@ -205,10 +217,18 @@ Camera::Render
 
         color = texture -> pixels[ texture -> width * texture_v + texture_u ];
 
+        color = COLOR_FAST_MIX_BLACK( color, current_light );
+        
         *( buff_w * v + u + buffer ) = color;
       }
-
       
+      
+
+      //if ( top_line_mask - 1 ==  bottom_line_mask + 1 )  break;
+      if ( top_line_mask - bottom_line_mask < 3 )  break;
+      
+      
+
       //
       //  FLOOR TOP SIDE
       //
@@ -236,6 +256,8 @@ Camera::Render
       
       texture = & world . textures [ shape -> floor_top ];
       
+      if ( top_line_mask - bottom_line_mask == 1 )  break;
+      
       for ( v = fline_y1; v < fline_y2; ++v )
       {
         current_hit_distance = (
@@ -251,7 +273,9 @@ Camera::Render
         texture_v = std::abs( current_hit_pos_y * texture -> height );
 
         color = texture -> pixels[ texture -> width * texture_v + texture_u ];
-
+        
+        color = COLOR_FAST_MIX_BLACK( color, current_light );
+        
         *( buff_w * v + u + buffer ) = color;
       }
       
@@ -263,12 +287,12 @@ Camera::Render
         map_x < 0 || map_x >= world.map_width
         ||
         map_y < 0 || map_y >= world.map_height
-        ||
-        bottom_line_mask == top_line_mask
       )
       {
         break;
       }
+
+      current_light = world . light_map[ world . map_width * map_y + map_x ];
 
       hittable = & world . map[ map_x + map_y * world.map_width ];
       
@@ -277,8 +301,13 @@ Camera::Render
         map_x = world . portals[ hittable -> index ] . target_x;
         map_y = world . portals[ hittable -> index ] . target_y;
         hittable = & world . map[ map_x + map_y * world.map_width ];
+        portal_z = shape -> floor_z + shape -> floor_height;
         shape = & world . shapes [ hittable -> index ];
-        ray_z = shape -> floor_z + shape -> floor_height;
+        ray_z = (
+          shape -> floor_z + shape -> floor_height + ray_z - portal_z
+        );
+
+        if ( entering_portals_count++ > portals_deapth )  break;
       }
       else
       {
@@ -350,7 +379,9 @@ Camera::Render
         color = texture -> pixels[ texture -> width * texture_v + texture_u ];
 
         if ( side == 1 )  color = ( color >> 1 ) & 0x7F7F7F7Fu;
-
+        
+        color = COLOR_FAST_MIX_BLACK( color, current_light );
+        
         *( buff_w * v + u + buffer ) = color;
       }
       
@@ -419,6 +450,8 @@ Camera::Render
         color = texture -> pixels[ texture -> width * texture_v + texture_u ];
 
         if ( side == 1 )  color = ( color >> 1 ) & 0x7F7F7F7Fu;
+        
+        color = COLOR_FAST_MIX_BLACK( color, current_light );
 
         *( buff_w * v + u + buffer ) = color;
       }

@@ -5,6 +5,8 @@
 #include <fstream>
 #include <vector>
 
+#include <iostream>
+
 #include <chrono>
 
 #include <SDL2/SDL.h>
@@ -65,6 +67,12 @@ class Game
   
   void
   LoadMapFromConfig
+  (
+      nlohmann::json &  m_json  
+  );
+  
+  void
+  LoadLightMapFromConfig
   (
       nlohmann::json &  m_json  
   );

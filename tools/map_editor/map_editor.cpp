@@ -1,10 +1,5 @@
 #include "map_editor.hpp"
 
-
-
-
-
-
 int
 main
 (
@@ -337,7 +332,7 @@ MapEditor::RenderMap
 {
   SDL_LockTexture( sdl_texture, NULL, & pixels, & pixels_pitch );
   
-  screen_pixels = reinterpret_cast< Uint32 * >( pixels );
+  screen_pixels = reinterpret_cast< LicEngine::Color::Uint32 * >( pixels );
 
 
   for ( y = 0; y < window_height; ++y )
@@ -357,8 +352,11 @@ MapEditor::RenderMap
       {
         if ( last_map_pos_x != map_pos_x || last_map_pos_y != map_pos_y )
         {
-          last_map_pixel = FRGBAtoURGBA(
-            labels[ map[ map_pos_x + map_pos_y * map_width ] ] . color
+          last_map_pixel = LicEngine::Color::RGBAtoUINT32(
+            255 * labels[ map[ map_pos_x + map_pos_y * map_width ] ] . color[ 0 ],
+            255 * labels[ map[ map_pos_x + map_pos_y * map_width ] ] . color[ 1 ],
+            255 * labels[ map[ map_pos_x + map_pos_y * map_width ] ] . color[ 2 ],
+            255 * labels[ map[ map_pos_x + map_pos_y * map_width ] ] . color[ 3 ]
           );
           
           last_map_pos_x = map_pos_x;
@@ -1011,22 +1009,6 @@ MapEditor::LoadSDLTextureFromFile
 
   return sdl_texture;
 }
-
-
-
-inline
-Uint32
-MapEditor::FRGBAtoURGBA
-(
-     const float * const  fcolor
-)
-{
-  return    static_cast< Uint32 > ( fcolor[ 0 ] * 255 ) << 24
-          | static_cast< Uint32 > ( fcolor[ 1 ] * 255 ) << 16
-          | static_cast< Uint32 > ( fcolor[ 2 ] * 255 ) << 8
-          | static_cast< Uint32 > ( fcolor[ 3 ] * 255 );
-}
-
 
 
 

@@ -16,6 +16,7 @@ set(EXTLIB_SRCROOT ${PROJECT_SOURCE_DIR}/extlibs/src)
 
 
 if (MAP_EDITOR)
+  
   add_library(Extlibs STATIC 
     ${EXTLIB_SRCROOT}/imgui.cpp
     ${EXTLIB_SRCROOT}/imgui_demo.cpp
@@ -26,25 +27,30 @@ if (MAP_EDITOR)
     ${EXTLIB_SRCROOT}/imgui_impl_sdlrenderer.cpp
     ${EXTLIB_SRCROOT}/imgui_stdlib.cpp
   )
+  add_executable(Executable tools/map_editor/map_editor.cpp)
+  target_link_libraries(Executable Extlibs
+    -lSDL2 -lSDL2main -lSDL2_image
+  )
+
 else()
   add_library(Engine STATIC
     ${SRCROOT}/Camera.cpp
+    ${SRCROOT}/World.cpp
+    ${SRCROOT}/LightSource.cpp
   )
-endif(MAP_EDITOR)
 
-if (MAP_EDITOR)
-  add_executable(Executable tools/map_editor/map_editor.cpp)
-  target_link_libraries(Executable Extlibs
-    -lSDL2 -lSDL2main -lSDL2_image)
-else()
+  
   add_executable(Executable
     example/game/main.cpp
     example/game/Game.cpp
     example/game/Player.cpp
     example/game/Rigidbody.cpp
   )
+  
   target_link_libraries(Executable Engine
-    -lSDL2 -lSDL2main -lSDL2_image)
+    -lSDL2 -lSDL2main -lSDL2_image -O2
+  )
+
 endif()
 
 unset(MAP_EDITOR CACHE)

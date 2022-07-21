@@ -1,16 +1,17 @@
 #ifndef LICORICE_ENGINE_WORLD_HPP
 #define LICORICE_ENGINE_WORLD_HPP
 
-#include <SDL2/SDL_pixels.h>
+#include <LicoriceEngine/Color.hpp>
+#include <LicoriceEngine/LightSource.hpp>
 
 namespace LicEngine
 {
 
 struct Texture
 {
-  Uint32 *  pixels = nullptr;
-  int32_t   width;
-  int32_t   height;
+  Color::Uint32 *  pixels = nullptr;
+  int32_t          width;
+  int32_t          height;
 };
 
 
@@ -48,20 +49,37 @@ struct Portal
 };
 
 
-struct World
+class World
 {
-  Hittable *  map;
-  int32_t     map_width;
-  int32_t     map_height;
+ public:
 
-  Shape *     shapes;
-  int32_t     shapes_count;
+  void
+  UpdateLightMap
+  (
   
-  Portal *    portals;
-  int32_t     portals_count;
+  );
 
-  Texture *   textures;
-  int32_t     textures_count;
+ public:
+  
+  Hittable *      map;
+  int32_t         map_width;
+  int32_t         map_height;
+
+  Shape *         shapes;
+  int32_t         shapes_count;
+  
+  Portal *        portals;
+  int32_t         portals_count;
+
+  Texture *       textures;
+  int32_t         textures_count;
+  
+  
+  double *        light_map;
+  double          standart_light;
+  
+  LightSource **  light_sources;
+  int32_t         light_sources_count;
 };
 
 }

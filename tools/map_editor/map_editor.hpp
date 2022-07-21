@@ -15,61 +15,42 @@
 #include <nlohmann/json.hpp>
 
 #include <LicoriceEngine/World.hpp>
-
-
-
-
+#include <LicoriceEngine/Color.hpp>
 
 namespace LicEngine
 {
+  void 
+  to_json
+  (
+      nlohmann::json &  j, 
+      const Shape &     s
+  );
+
+  void 
+  to_json
+  (
+      nlohmann::json &  j, 
+      const Portal &    p
+  );
 
 
-void 
-to_json
-(
-    nlohmann::json &  j, 
-    const Shape &     s
-);
+  void
+  from_json
+  (
+      const nlohmann::json & j,
+      Shape &                s
+  );
 
-
-
-void
-from_json
-(
-    const nlohmann::json & j,
-    Shape &                s
-);
-
-
-void 
-to_json
-(
-    nlohmann::json &  j, 
-    const Portal &    p
-);
-
-
-
-void
-from_json
-(
-    const nlohmann::json & j,
-    Portal &               p
-);
-
-
+  void
+  from_json
+  (
+      const nlohmann::json & j,
+      Portal &               p
+  );
 }
-
-
-
-
-
 
 namespace MapEditor
 {
-
-
-
 
 
 struct Texture
@@ -77,7 +58,6 @@ struct Texture
   SDL_Texture *  sdl_texture;
   std::string    texture_pass;
 };
-
 
 struct Label
 {
@@ -89,8 +69,9 @@ struct Label
 
 
 
-
-
+//
+// Init
+//
 
 void
 InitSDL
@@ -122,15 +103,15 @@ InitMapEditorScene
 
 );
 
-
+//
+// Update
+//
 
 void
 Update
 (
 
 );
-
-
 
 void
 UpdateSDLEvents
@@ -144,8 +125,9 @@ SelectCellByMousePosition
 
 );
 
-
-
+//
+// Render
+//
 
 void
 RenderMap
@@ -153,16 +135,11 @@ RenderMap
 
 );
 
-
-
-
 void
 RenderImGui
 (
 
 );
-
-
 
 void
 RenderSceneSetttings
@@ -170,7 +147,7 @@ RenderSceneSetttings
 
 );
 
-
+// Map settings
 
 void
 RenderMapSettings
@@ -190,7 +167,7 @@ ResizeMap
 
 );
 
-
+// Config settings
 
 void
 RenderConfigSettings
@@ -210,7 +187,7 @@ InitGameMapConfig
 
 );
 
-
+// Textures settings
 
 void
 RenderTexturesSettings
@@ -224,7 +201,7 @@ RenderTexturesList
 
 );
 
-
+// Label settings
 
 void
 RenderLabelsSettings
@@ -252,14 +229,11 @@ RenderPortalSettings
 );
 
 
-
 void
 RenderSelectedCellSettings
 (
 
 );
-
-
 
 
 void
@@ -269,27 +243,12 @@ FreeMemory
 );
 
 
-
-
-
-inline
 SDL_Texture *
 LoadSDLTextureFromFile
 (
     SDL_Renderer *  renderer,
     std::string     img_pass
 );
-
-
-inline
-Uint32
-FRGBAtoURGBA
-(
-     const float * const  fcolor
-);
-
-
-
 
 
 void 
@@ -306,7 +265,6 @@ from_json
     const nlohmann::json & j,
     Label &                label
 );
-
 
 
 
@@ -381,8 +339,8 @@ double    camera_x;
 double    camera_y;
 
 
-Uint32    last_map_pixel;
-Uint32 *  screen_pixels;
+LicEngine::Color::Uint32    last_map_pixel;
+LicEngine::Color::Uint32 *  screen_pixels;
 
   
 //

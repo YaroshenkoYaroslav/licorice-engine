@@ -27,17 +27,29 @@ Game::~Game
 
 )
 {
-  int  i;
+  int32_t  i;
 
 
   for ( i = 0; i < m_world . textures_count; ++i )
   {
     delete m_world . textures[ i ] . pixels;
   }
+
+  for ( i = 0; i < m_world . light_sources_count; ++i )
+  {
+    delete m_world . light_sources[ i ];
+  }
+
+  
   delete [] m_world . shapes;
   delete [] m_world . textures;
+  
+  delete [] m_world . light_map;
+  delete [] m_world . light_sources;
+  
   delete [] m_world . map;
 
+  
   SDL_DestroyTexture( renderer_sdl_texture );
   SDL_DestroyRenderer( renderer );
   SDL_DestroyWindow( window );
@@ -110,6 +122,8 @@ Game::InitScene
   
   m_player . m_rigidbody . mass = 0.1;
   m_player . m_rigidbody . gravity = 9.8;
+
+  m_player . m_camera . portals_deapth = 50;
 }
 
 
@@ -135,7 +149,9 @@ Game::LoadSceneFromConfig
   inf . close();
   
   LoadMapFromConfig( m_json ); 
-    
+  
+  LoadLightMapFromConfig( m_json );
+
   LoadHittablesFromConfig( m_json );
   
   LoadCameraFromConfig( m_json );
@@ -179,6 +195,38 @@ Game::LoadMapFromConfig
   }
 }
 
+void
+Game::LoadLightMapFromConfig
+(
+    nlohmann::json &  m_json  
+)
+{
+  LicEngine::LightPoint *  new_light_point;
+
+
+  
+  m_world . light_map = new double[
+    m_world . map_width * m_world . map_height
+  ];
+  m_world . standart_light = 0.1;
+
+
+  m_world . light_sources_count = 1;
+
+  m_world . light_sources = new LicEngine::LightSource *[
+    m_world . light_sources_count
+  ];
+  new_light_point = new LicEngine::LightPoint;
+
+  new_light_point -> position_x = 11;
+  new_light_point -> position_y = 20;
+  new_light_point -> radius = 3;
+  new_light_point -> intensity = 0.6;
+  
+  m_world . light_sources[ 0 ] = new_light_point;
+  
+  m_world . UpdateLightMap();
+}
 
 bool
 Game::LoadTexturesFromConfig
@@ -263,11 +311,11 @@ Game::LoadCameraFromConfig
 
   m_player . m_camera . position_z = shape -> floor_height + shape -> floor_z;
  
-  m_player . m_camera . direction_x = m_json[ "camera_dir_x" ];;
-  m_player . m_camera . direction_y = m_json[ "camera_dir_y" ];;
+  m_player . m_camera . direction_x = m_json[ "camera_dir_x" ];
+  m_player . m_camera . direction_y = m_json[ "camera_dir_y" ];
   
-  m_player . m_camera . viewing_plane_x  = m_json[ "camera_view_plane_x" ];;
-  m_player . m_camera . viewing_plane_y  = m_json[ "camera_view_plane_y" ];;
+  m_player . m_camera . viewing_plane_x  = m_json[ "camera_view_plane_x" ];
+  m_player . m_camera . viewing_plane_y  = m_json[ "camera_view_plane_y" ];
 }
   
 
