@@ -13,18 +13,24 @@ LightPoint::Use
 )
 const
 {
+  double   light_step;
   double   size;
   int32_t  x;
   int32_t  y;
+  int32_t  index;
 
  
 
   // TODO improve the code ( now 0(n) but bad code )
   
-  light_map[ position_y * map_width + position_x ] = intensity;
+  index = position_y * map_width + position_x;
+  light_map[ index ] += intensity;
+  if ( light_map[ index ] > 1 )  light_map[ index ] = 1;
 
   for ( size = 1; size <= radius; ++size )
   {
+    light_step = ( 1 - size / radius );
+
     for ( y = position_y - size; y <= position_y + size; y += 2 * size )
     {
       if ( y < 0 || y >= map_height )  continue;
@@ -35,12 +41,15 @@ const
         );
         x <= std::min(
           static_cast< int32_t >( map_width - 1 ),
-          static_cast< int32_t >(position_x + size )
+          static_cast< int32_t >( position_x + size )
         );
         ++x
       )
       {
-        light_map[ y * map_width + x ] += intensity * ( 1 - size / radius );
+        index = y * map_width + x;
+        light_map[ index ] += intensity * light_step;
+
+        if ( light_map[ index ] > 1 )  light_map[ index ] = 1;
       }
     }
    
@@ -53,13 +62,15 @@ const
           static_cast< int32_t >( position_y - size + 1 ), 0
         );
         y < std::min(
-          static_cast< int32_t >( map_height - 1 ),
+          static_cast< int32_t >( map_height ),
           static_cast< int32_t >( position_y + size )
         );
         ++y 
       )
       {
-        light_map[ y * map_width + x ] += intensity * ( 1 - size / radius );
+        index = y * map_width + x;
+        light_map[ index ] += intensity * light_step;
+        if ( light_map[ index ] > 1 )  light_map[ index ] = 1;
       }
     }
   }
@@ -77,13 +88,16 @@ const
 {
   int32_t  x;
   int32_t  y;
+  int32_t  index;
 
 
   for ( y = y1 ; y <= y2; ++y )
   {
     for ( x = x1 ; x <= x2; ++x )
     {
-      light_map[ map_width * y + x ] += intensity;
+      index = map_width * y + x;
+      light_map[ index ] += intensity;
+      if ( light_map[ index ] > 1 )  light_map[ index ] = 1;
     }
   }
 }

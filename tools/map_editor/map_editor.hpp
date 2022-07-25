@@ -1,3 +1,6 @@
+#ifndef MAP_EDITOR_HPP
+#define MAP_EDITOR_HPP
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -15,38 +18,22 @@
 #include <nlohmann/json.hpp>
 
 #include <LicoriceEngine/World.hpp>
+#include <LicoriceEngine/LightSource.hpp>
 #include <LicoriceEngine/Color.hpp>
 
 namespace LicEngine
 {
-  void 
-  to_json
-  (
-      nlohmann::json &  j, 
-      const Shape &     s
-  );
-
-  void 
-  to_json
-  (
-      nlohmann::json &  j, 
-      const Portal &    p
-  );
-
-
-  void
-  from_json
-  (
-      const nlohmann::json & j,
-      Shape &                s
-  );
-
-  void
-  from_json
-  (
-      const nlohmann::json & j,
-      Portal &               p
-  );
+  NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(
+    Shape,
+    floor_border, floor_top, 
+    ceil_border, ceil_bottom,
+    floor_height, floor_z,
+    ceil_height, ceil_z
+  )
+  NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(
+    Portal,
+    target_x, target_y 
+  )
 }
 
 namespace MapEditor
@@ -66,6 +53,68 @@ struct Label
   
   int32_t      hittable_type;
 };
+
+class ImLightSource
+  : virtual public LicEngine::LightSource
+{
+ public:
+  ImLightSource( std::string title = "New light source" );
+  virtual void Render () = 0;
+  virtual int GetType() = 0;
+  virtual nlohmann::json GenerateJson() = 0;
+ public:
+  std::string title;
+};
+
+class ImLightPoint
+  : public LicEngine::LightPoint,
+    public ImLightSource
+{
+ public:
+  ImLightPoint( std::string title = "New light point" );
+  ImLightPoint( ImLightPoint &&  other );
+  void Render () override;
+  int GetType() override { return 0; };
+  nlohmann::json GenerateJson() override;
+};
+
+class ImLightArea
+  : public LicEngine::LightArea,
+    public ImLightSource
+{
+ public:
+  ImLightArea( std::string title = "New light area" );
+  ImLightArea( ImLightArea &&  other );
+  void Render () override;
+  int GetType() override { return 1; };
+  nlohmann::json GenerateJson() override;
+};
+
+
+
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(
+  ImLightPoint,
+  position_x, position_y,
+  radius,
+  intensity,
+  title
+)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(
+  ImLightArea,
+  x1, y1,
+  x2, y2,
+  intensity,
+  title
+)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(
+  Label,
+  title,
+  color,
+  hittable_type
+)
+
 
 
 
@@ -147,6 +196,12 @@ RenderSceneSetttings
 
 );
 
+void
+RenderCameraSettings
+(
+
+);
+
 // Map settings
 
 void
@@ -201,6 +256,19 @@ RenderTexturesList
 
 );
 
+
+void
+RenderLightSettings
+(
+
+);
+
+void
+UpdateLightMap
+(
+
+);
+
 // Label settings
 
 void
@@ -249,21 +317,13 @@ LoadSDLTextureFromFile
     SDL_Renderer *  renderer,
     std::string     img_pass
 );
+ 
 
-
-void 
-to_json
+inline
+LicEngine::Color::Uint32
+F3toUINT32
 (
-    nlohmann::json &  j, 
-    const Label &     label
-);
-
-
-void
-from_json
-(
-    const nlohmann::json & j,
-    Label &                label
+    const float ( & c_array )[ 3 ]
 );
 
 
@@ -282,6 +342,12 @@ const int     hittables_types_count = 2;
 const char *  hittables_types_names  [ hittables_types_count ] = 
 { 
   "Shape", "Portal"
+};
+
+const int     light_sources_types_count = 2;
+const char *  light_sources_types_names  [ light_sources_types_count ] = 
+{ 
+  "LightPoint", "LightArea"
 };
 
 
@@ -338,6 +404,10 @@ double    scene_y;
 double    camera_x;
 double    camera_y;
 
+double    new_cell_light;
+double    luminance;
+
+float     luminance_mix_color  [ 3 ] {};
 
 LicEngine::Color::Uint32    last_map_pixel;
 LicEngine::Color::Uint32 *  screen_pixels;
@@ -353,6 +423,7 @@ std::ifstream           inf;
 std::ofstream           otf;
 
 std::vector< int32_t >  map;
+std::vector< double >   light_map;
 
 
 //
@@ -381,8 +452,11 @@ std::unordered_map< int32_t, LicEngine::Shape >   shapes;
 std::unordered_map< int32_t, LicEngine::Portal >  portals;
 std::unordered_map< int32_t, Label >              labels;
 std::list< Texture >                              textures;
+std::list< ImLightSource * >                      light_sources;
 
 
 
 
 };
+
+#endif

@@ -76,7 +76,7 @@ class World
   
   
   double *        light_map;
-  double          standart_light;
+  double          luminance;
   
   LightSource **  light_sources;
   int32_t         light_sources_count;

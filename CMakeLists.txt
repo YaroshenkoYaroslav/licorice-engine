@@ -27,8 +27,11 @@ if (MAP_EDITOR)
     ${EXTLIB_SRCROOT}/imgui_impl_sdlrenderer.cpp
     ${EXTLIB_SRCROOT}/imgui_stdlib.cpp
   )
+  add_library(Engine STATIC
+    ${SRCROOT}/LightSource.cpp
+  )
   add_executable(Executable tools/map_editor/map_editor.cpp)
-  target_link_libraries(Executable Extlibs
+  target_link_libraries(Executable Extlibs Engine
     -lSDL2 -lSDL2main -lSDL2_image
   )
 

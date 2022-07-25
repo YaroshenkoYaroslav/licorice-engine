@@ -19,7 +19,6 @@ main
 
   while ( MapEditor::quit == 0 )
   {
-
     MapEditor::Update();
     MapEditor::UpdateSDLEvents();
 
@@ -113,6 +112,8 @@ MapEditor::LoadMapEditorFromConfig
   camera_dir_y = m_json[ "camera_dir_y" ];
   camera_view_plane_x = m_json[ "camera_view_plane_x" ];
   camera_view_plane_y = m_json[ "camera_view_plane_y" ];
+  
+  luminance = m_json[ "luminance" ];
 
   for ( const std::string & texture_pass : m_json[ "textures" ] ) {
     textures . push_back( {
@@ -145,6 +146,23 @@ MapEditor::LoadMapEditorFromConfig
       );
     }
   }
+ 
+  for ( const auto & light_source_json : m_json[ "light_sources" ] )
+  {
+    if ( light_source_json[ "type" ] == 0 )
+    {
+      ImLightPoint a;
+      light_sources . push_back ( new ImLightPoint ( 
+        static_cast< ImLightPoint >( light_source_json )
+      ) );
+    }
+    else
+    {
+      light_sources . push_back ( new ImLightArea (
+        static_cast< ImLightArea >( light_source_json )
+      ) );
+    }
+  }
 }
 
 
@@ -166,6 +184,8 @@ MapEditor::CreateMapEditorFromInput
   camera_view_plane_y = 0.66;
   camera_x = 0;
   camera_y = 0;
+
+  luminance = 1;
 
   labels[ 0 ] = {  "New label",  { 1.0, 1.0, 1.0 }  };
 }
@@ -201,7 +221,11 @@ MapEditor::InitMapEditorScene
   
   map_drawing_rect = { 0, 0, window_width, window_height };
 
-  
+  new_cell_light = 0;
+
+  light_map . resize( map . size() );
+  UpdateLightMap();
+
   quit = 0;
 }
 
@@ -330,10 +354,13 @@ MapEditor::RenderMap
 
 )
 {
+  int32_t                  index;
+
+
+
   SDL_LockTexture( sdl_texture, NULL, & pixels, & pixels_pitch );
   
   screen_pixels = reinterpret_cast< LicEngine::Color::Uint32 * >( pixels );
-
 
   for ( y = 0; y < window_height; ++y )
   {
@@ -352,11 +379,12 @@ MapEditor::RenderMap
       {
         if ( last_map_pos_x != map_pos_x || last_map_pos_y != map_pos_y )
         {
-          last_map_pixel = LicEngine::Color::RGBAtoUINT32(
-            255 * labels[ map[ map_pos_x + map_pos_y * map_width ] ] . color[ 0 ],
-            255 * labels[ map[ map_pos_x + map_pos_y * map_width ] ] . color[ 1 ],
-            255 * labels[ map[ map_pos_x + map_pos_y * map_width ] ] . color[ 2 ],
-            255 * labels[ map[ map_pos_x + map_pos_y * map_width ] ] . color[ 3 ]
+          index = map_pos_x + map_pos_y * map_width;
+
+          last_map_pixel = LicEngine::Color::Mix( 
+            F3toUINT32( luminance_mix_color ),
+            F3toUINT32( labels[ map[ index ] ] . color ),
+            light_map[ index ]
           );
           
           last_map_pos_x = map_pos_x;
@@ -394,10 +422,12 @@ MapEditor::RenderImGui
   ImGui::Begin( "MENU" );
   {
     if ( ImGui::CollapsingHeader( "Scene" ) )          RenderSceneSetttings();
+    if ( ImGui::CollapsingHeader( "Camera" ) )         RenderCameraSettings();
     if ( ImGui::CollapsingHeader( "Map" ) )            RenderMapSettings();
     if ( ImGui::CollapsingHeader( "Config file" ) )    RenderConfigSettings();
     if ( ImGui::CollapsingHeader( "Textures" ) )       RenderTexturesSettings();
     if ( ImGui::CollapsingHeader( "Labels" ) )         RenderLabelsSettings();
+    if ( ImGui::CollapsingHeader( "Light" ) )          RenderLightSettings();
     if ( ImGui::CollapsingHeader( "Selected cell" ) )  RenderSelectedCellSettings();
   }
   ImGui::End();
@@ -413,15 +443,26 @@ MapEditor::RenderSceneSetttings
 
 )
 {
+  ImGui::InputDouble( "scene_x", & scene_x );
+  ImGui::InputDouble( "scene_y", & scene_y );
+  ImGui::InputDouble( "scale", & scale );
+  ImGui::ColorEdit3( "light color", luminance_mix_color );
+}
+
+
+
+void
+MapEditor::RenderCameraSettings
+(
+
+)
+{
   ImGui::InputDouble( "camera_x", & camera_x );
   ImGui::InputDouble( "camera_y", & camera_y );
   ImGui::InputDouble( "camera_dir_x", & camera_dir_x );
   ImGui::InputDouble( "camera_dir_y", & camera_dir_y );
   ImGui::InputDouble( "camera_view_plane_x", & camera_view_plane_x );
   ImGui::InputDouble( "camera_view_plane_y", & camera_view_plane_y );
-  ImGui::InputDouble( "scene_x", & scene_x );
-  ImGui::InputDouble( "scene_y", & scene_y );
-  ImGui::InputDouble( "scale", & scale );
 }
 
 
@@ -614,6 +655,8 @@ MapEditor::InitEditorMapConfig
   m_json[ "map_width" ] = map_width;
   m_json[ "map_height" ] = map_height;
   
+  m_json[ "luminance" ] = luminance;
+
   for ( y = 0; y < map_height; ++y )
   {
     for ( x = 0; x < map_width; ++x )
@@ -644,6 +687,12 @@ MapEditor::InitEditorMapConfig
   for ( auto & [ label_id, label ] : labels )
   {
     m_json[ "labels" ] . push_back( { label_id, label } );
+  
+  }
+
+  for ( auto & light_source : light_sources )
+  {
+    m_json[ "light_sources" ] . push_back( light_source -> GenerateJson() );
   }
 }
 
@@ -653,6 +702,9 @@ MapEditor::InitGameMapConfig
 
 )
 {
+  int64_t                                 index;
+  std::string                             y_str;
+  std::string                             x_str;
   std::unordered_map< int32_t, int32_t >  labels_indexes;
 
 
@@ -684,12 +736,16 @@ MapEditor::InitGameMapConfig
   
   for ( y = 0; y < map_height; ++y )
   {
+    y_str = std::to_string( y );
     for ( x = 0; x < map_width; ++x )
     {
-      m_json[ "map" ][ std::to_string( y ) ][ std::to_string( x ) ] = {
-        labels_indexes[ map[ x + y * map_width ] ],
-        labels[ map[ x + y * map_width ] ] . hittable_type
+      x_str = std::to_string( x );
+      index = map_width * y + x;
+      m_json[ "map" ][ y_str ][ x_str ] = {
+        labels_indexes[ map[ index ] ],
+        labels[ map[ index ] ] . hittable_type
       };
+      m_json[ "light_map" ][ y_str ][ x_str ] = light_map[ index ];
     }
   }
 
@@ -731,7 +787,7 @@ MapEditor::RenderTexturesSettings
     );
     if ( new_texture != NULL)
     {
-      textures.push_back( { new_texture, new_texture_pass } );
+      textures . push_back( { new_texture, new_texture_pass } );
     }
   }
 
@@ -787,6 +843,113 @@ MapEditor::RenderTexturesList
     ImGui::PopID();
     ++y;
   }
+}
+
+
+
+void
+MapEditor::RenderLightSettings
+(
+
+)
+{
+  ImLightSource *  c_im_light_source;
+  int32_t          new_type;
+  int32_t          y;
+
+
+
+  y = 0;
+
+  ImGui::InputDouble( "luminance", & luminance );
+  
+  ImGui::NewLine();
+
+  for ( auto it = light_sources . begin(); it != light_sources . end(); ++it )
+  {
+    if 
+    ( 
+      ImGui::TreeNode(
+        reinterpret_cast< void * >( static_cast< intptr_t >( y ) ),
+        "%s",
+        (*it) -> title . c_str()
+      )
+    )
+    {
+      ImGui::InputText( "title", & (*it) -> title );
+      
+      new_type = (*it) -> GetType();
+      if
+      (
+        ImGui::SliderInt(
+          "Type", & new_type,
+          0, 1,
+          light_sources_types_names[ new_type ]
+        )
+      )
+      {
+        if ( new_type == 0 )  (*it) = new ImLightPoint( "New light point" );
+        else                  (*it) = new ImLightArea( "New light area" );
+      }
+      (*it) -> Render();
+      if ( ImGui::Button( "Delete" ) )
+      {
+        it = light_sources . erase( it );
+      }
+      ImGui::TreePop();
+    }
+    ++y;
+  }
+  
+  ImGui::NewLine();
+  
+  if ( ImGui::Button( "Add light source " ) )
+  {
+    light_sources . push_back( new ImLightPoint( "New light point" ) );
+  }
+  ImGui::SameLine();
+  if ( ImGui::Button( "Update" ) )
+  {
+    UpdateLightMap();
+  }
+}
+    
+void
+MapEditor::UpdateLightMap
+(
+
+)
+{
+  std::fill( light_map . begin(), light_map . end(), luminance ); 
+  for ( const auto & light_source : light_sources )
+  {
+    light_source -> Use( light_map . data(), map_width, map_height );
+  }
+}
+
+void
+MapEditor::ImLightPoint::Render
+(
+
+)
+{
+  ImGui::InputInt( "x", &  position_x );
+  ImGui::InputInt( "y", &  position_y );
+  ImGui::InputInt( "radius", &  radius );
+  ImGui::InputDouble( "intensity", &  intensity );
+}
+
+void
+MapEditor::ImLightArea::Render
+(
+
+)
+{
+  ImGui::InputInt( "x1", &  x1 );
+  ImGui::InputInt( "y1", &  y1 );
+  ImGui::InputInt( "x2", &  x2 );
+  ImGui::InputInt( "y2", &  y2 );
+  ImGui::InputDouble( "intensity", &  intensity );
 }
 
 
@@ -938,14 +1101,14 @@ MapEditor::RenderSelectedCellSettings
 
   ImGui::NewLine();
 
+  ImGui::InputInt( "New label ID", & new_cell_label_id );
+  ImGui::InputDouble( "New lighting level", & new_cell_light );
+  
   if ( ImGui::Button ( "Update" ) )
   {
     map[ selected_cell_index ] = new_cell_label_id;
+    light_map[ selected_cell_index ] = new_cell_light;
   }
-
-  ImGui::SameLine();
-
-  ImGui::InputInt( "New label ID", & new_cell_label_id );
 }
 
 
@@ -1009,98 +1172,106 @@ MapEditor::LoadSDLTextureFromFile
 
   return sdl_texture;
 }
+  
 
-
-
-
-
-void 
-MapEditor::to_json
+inline
+LicEngine::Color::Uint32
+MapEditor::F3toUINT32
 (
-    nlohmann::json &             j, 
-    const MapEditor::Label &     label
+    const float ( & c_array )[ 3 ]
 )
 {
-  j = nlohmann::json {
-    { "title",         label . title },
-    { "color",         label . color },
-    { "hittable_type", label . hittable_type }
-  };
-}
-
-void
-MapEditor::from_json
-(
-    const nlohmann::json & j,
-    MapEditor::Label &     label
-)
-{
-    j . at( "title" )         . get_to( label . title );
-    j . at( "color" )         . get_to( label . color );
-    j . at( "hittable_type" ) . get_to( label . hittable_type );
+  return LicEngine::Color::RGBAtoUINT32(
+    255 * c_array[ 0 ],
+    255 * c_array[ 1 ],
+    255 * c_array[ 2 ],
+    255
+  );
 }
 
 
 
-void 
-LicEngine::to_json
-(
-    nlohmann::json &             j, 
-    const LicEngine::Shape &     s
-)
+
+
+
+
+namespace MapEditor
 {
-  j = nlohmann::json {
-    { "floor_border",  s . floor_border }, 
-    { "floor_top",     s . floor_top    },
-    { "ceil_border",   s . ceil_border  },
-    { "ceil_bottom",   s . ceil_bottom  },
-    { "floor_height",  s . floor_height },
-    { "floor_z",       s . floor_z      },
-    { "ceil_height",   s . ceil_height  },
-    { "ceil_z",        s . ceil_z       },
-  };
+
+ImLightSource::ImLightSource
+(
+    std::string title
+)
+  : title( title )
+{}
+  
+
+ImLightPoint::ImLightPoint
+(
+    std::string title
+) 
+  : ImLightSource( title )
+{}
+
+ImLightPoint::ImLightPoint
+(
+    ImLightPoint &&  other 
+)
+  : ImLightSource( other . title )
+{
+  position_x = other . position_x;
+  position_y = other . position_y;
+  radius = other . radius;
+  intensity = other . intensity;
+}
+  
+
+ImLightArea::ImLightArea
+(
+    std::string title 
+) 
+  : ImLightSource( title ) 
+{}
+
+ImLightArea::ImLightArea
+(
+    ImLightArea &&  other
+)
+  : ImLightSource( other . title )
+{
+  x1 = other . x1;
+  y1 = other . y1;
+  x2 = other . x2;
+  y2 = other . y2;
+  intensity = other . intensity;
 }
 
-void
-LicEngine::from_json
-(
-    const nlohmann::json & j,
-    LicEngine::Shape &     s
-)
-{
-  j . at( "floor_border" ) . get_to( s . floor_border );
-  j . at( "floor_top" )    . get_to( s . floor_top );
-  j . at( "ceil_border" )  . get_to( s . ceil_border );
-  j . at( "ceil_bottom" )  . get_to( s . ceil_bottom );
-  j . at( "floor_height" ) . get_to( s . floor_height );
-  j . at( "floor_z" )      . get_to( s . floor_z );
-  j . at( "ceil_height" )  . get_to( s . ceil_height );
-  j . at( "ceil_z" )       . get_to( s . ceil_z );
-}
-
-
-void 
-LicEngine::to_json
-(
-    nlohmann::json &           j, 
-    const LicEngine::Portal &  p
-)
-{
-  j = nlohmann::json {
-    { "target_x", p . target_x },
-    { "target_y", p . target_y },
-  };
 }
 
 
 
-void
-LicEngine::from_json
+
+
+
+nlohmann::json
+MapEditor::ImLightPoint::GenerateJson
 (
-    const nlohmann::json & j,
-    LicEngine::Portal &    p
+
 )
 {
-  j . at( "target_x" ) . get_to( p . target_x );
-  j . at( "target_y" ) . get_to( p . target_y );
+  nlohmann::json j = *( this );
+  j["type"] = GetType();
+  return j;
+}
+
+
+nlohmann::json
+MapEditor::ImLightArea::GenerateJson
+(
+
+)
+{
+  nlohmann::json j = *( this );
+  j["type"] = GetType();
+  return j;
 }

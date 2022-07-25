@@ -14,7 +14,7 @@ World::UpdateLightMap
 
   for ( index = 0; index < map_width * map_height; ++index )
   {
-    light_map[ index ] = standart_light;
+    light_map[ index ] = luminance;
   }
 
   for ( index = 0; index < light_sources_count; ++index )

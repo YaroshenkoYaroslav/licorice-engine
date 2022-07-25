@@ -35,17 +35,11 @@ Game::~Game
     delete m_world . textures[ i ] . pixels;
   }
 
-  for ( i = 0; i < m_world . light_sources_count; ++i )
-  {
-    delete m_world . light_sources[ i ];
-  }
-
-  
   delete [] m_world . shapes;
+  if ( m_world . portals)  delete [] m_world . portals;
   delete [] m_world . textures;
   
   delete [] m_world . light_map;
-  delete [] m_world . light_sources;
   
   delete [] m_world . map;
 
@@ -201,31 +195,26 @@ Game::LoadLightMapFromConfig
     nlohmann::json &  m_json  
 )
 {
-  LicEngine::LightPoint *  new_light_point;
+  int32_t                 x;
+  int32_t                 y;
+  nlohmann::basic_json<>  y_json;
 
 
-  
+
   m_world . light_map = new double[
     m_world . map_width * m_world . map_height
   ];
-  m_world . standart_light = 0.1;
 
-
-  m_world . light_sources_count = 1;
-
-  m_world . light_sources = new LicEngine::LightSource *[
-    m_world . light_sources_count
-  ];
-  new_light_point = new LicEngine::LightPoint;
-
-  new_light_point -> position_x = 11;
-  new_light_point -> position_y = 20;
-  new_light_point -> radius = 3;
-  new_light_point -> intensity = 0.6;
-  
-  m_world . light_sources[ 0 ] = new_light_point;
-  
-  m_world . UpdateLightMap();
+  for ( y = 0; y < m_world . map_height; ++y )
+  {
+    y_json = m_json[ "light_map" ][ std::to_string( y ) ];
+    for ( x = 0; x < m_world . map_width; ++x )
+    {
+      m_world . light_map[ m_world . map_width * y + x ] = y_json[
+        std::to_string( x )
+      ];
+    }
+  }
 }
 
 bool

@@ -460,9 +460,6 @@ const
 }
 
 
-
-
-
 void
 Camera::Rotate
 (

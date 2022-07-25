@@ -17,13 +17,13 @@ cd licorice-engine
 ###### Compiling map editor
 ```shell
 mkdir build && cd build && cmake -DMAP_EDITOR=ON .. && make
-./Executable *pass_to_map_config*
+./Executable ../example/editor_map.json
 ```
 
 ###### Compiling game example
 ```shell
 mkdir build && cd build && cmake .. && make
-./Executable *pass_to_game_config*
+./Executable ../example/game_map.json
 ```
 
 ### Acknowledgements
@@ -33,9 +33,12 @@ mkdir build && cd build && cmake .. && make
 
 ### Used libraries
 -----
-* Engine:                 [SDL](https://github.com/libsdl-org/SDL)
-* MapEditor:              [ImGui](https://github.com/ocornut/imgui)
-* MapEditor/Game example: [json](https://github.com/nlohmann/json)
+
+| Program | Library |
+| --- | -------------- |
+| Engine | [SDL](https://github.com/libsdl-org/SDL) |
+| Game example | [SDL](https://github.com/libsdl-org/SDL), [SDL_Image](https://github.com/libsdl-org/SDL_image), [json](https://github.com/nlohmann/json) |
+| Map editor | [SDL](https://github.com/libsdl-org/SDL), [SDL_Image](https://github.com/libsdl-org/SDL_image), [json](https://github.com/nlohmann/json), [ImGui](https://github.com/ocornut/imgui) |
 
 ### Screenshots
 -----

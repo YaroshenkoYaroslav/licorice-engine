@@ -23,7 +23,9 @@ class LightSource
   = 0;
 };
 
-class LightPoint : public LightSource
+// TODO fix virtual
+class LightPoint
+  : virtual public LightSource
 {
  public:
   
@@ -45,7 +47,8 @@ class LightPoint : public LightSource
   double   intensity;
 };
 
-class LightArea : public LightSource
+class LightArea
+  : virtual public LightSource
 {
  public:
   
