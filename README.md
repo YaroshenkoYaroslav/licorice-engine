@@ -7,23 +7,28 @@ There are two included types of hittables.
 
 Also engine tools include map editor.
 
-### Installation
+### Compiling
 -----
+###### Dependencies
+```
+sdl2 sdl2_image
+```
+
+###### Compiling [map editor]/[example]  (Unix)
+
 ```shell
 git clone https://github.com/YaroshenkoYaroslav/licorice-engine.git
 cd licorice-engine
-```
 
-###### Compiling map editor
-```shell
-mkdir build && cd build && cmake -DMAP_EDITOR=ON .. && make
-./Executable ../example/editor_map.json
-```
+mkdir build && cd build
+cmake -DLIC_ENGINE_BUILD_MAP_EDITOR=ON -DLIC_ENGINE_BUILD_EXAMPLE=ON .. && make
 
-###### Compiling game example
-```shell
-mkdir build && cd build && cmake .. && make
-./Executable ../example/game_map.json
+# Executable example:
+#   cp example/executable_example .
+#   ./executable_example ../example/game.json
+# Executable map editor:
+#   cp tools/map_editor/executable_map_editor .
+#   ./executable_map_editor ../example/map_editor.json
 ```
 
 ### Acknowledgements
@@ -36,7 +41,7 @@ mkdir build && cd build && cmake .. && make
 
 | Program | Library |
 | --- | -------------- |
-| Engine | [SDL](https://github.com/libsdl-org/SDL) |
+| Engine | NONE |
 | Game example | [SDL](https://github.com/libsdl-org/SDL), [SDL_Image](https://github.com/libsdl-org/SDL_image), [json](https://github.com/nlohmann/json) |
 | Map editor | [SDL](https://github.com/libsdl-org/SDL), [SDL_Image](https://github.com/libsdl-org/SDL_image), [json](https://github.com/nlohmann/json), [ImGui](https://github.com/ocornut/imgui) |
 
