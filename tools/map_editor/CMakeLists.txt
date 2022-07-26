@@ -17,8 +17,8 @@ add_library(extlibs STATIC
   ${EXTLIB_SRCROOT}/imgui_stdlib.cpp
 )
 
-add_executable(executable_map_edtior map_editor.cpp)
+add_executable(executable_map_editor map_editor.cpp)
 
-target_link_libraries(executable_map_edtior extlibs licengine
+target_link_libraries(executable_map_editor extlibs licengine
   -lSDL2 -lSDL2main -lSDL2_image
 )
